@@ -1,0 +1,55 @@
+﻿services:
+  carboncertifier:
+    image: carboncertifier
+    build:
+      context: .
+      dockerfile: CarbonCertifier/Dockerfile
+    networks:
+      - carbon_net
+
+  carbonblockchain:
+    image: carbonblockchain
+    build:
+      context: .
+      dockerfile: CarbonBlockchain/Dockerfile
+    networks:
+      - carbon_net
+  
+  carboncertifierdb:
+    image: postgres
+    container_name: CarbonCertifierDb
+    environment:
+      POSTGRES_USER: postgres         
+      POSTGRES_PASSWORD: carbon2025  
+      POSTGRES_DB: carboncertifier
+    ports:
+      - "5432:5432" 
+    volumes:
+      - certifier_postgres_data:/var/lib/postgresql/data 
+    networks:
+      - carbon_net
+      
+  carboncreditdb:
+    image: postgres
+    container_name: CarbonCreditDb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: carbon2025
+      POSTGRES_DB: carboncredit
+    ports:
+      - "5434:5434"
+    volumes:
+      - certifier_postgres_data:/var/lib/postgresql/data
+    networks:
+      - carbon_net
+
+volumes:
+  certifier_postgres_data:
+  credit_postgres_data:
+    
+networks:
+  carbon_net:
+    driver: bridge
+
+     
+    

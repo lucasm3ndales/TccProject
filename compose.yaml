@@ -20,8 +20,8 @@
     container_name: CarbonCertifierDb
     environment:
       POSTGRES_USER: postgres         
-      POSTGRES_PASSWORD: carbon2025  
-      POSTGRES_DB: carboncertifier
+      POSTGRES_PASSWORD: 1234  
+      POSTGRES_DB: CarbonCertifier
     ports:
       - "5432:5432" 
     volumes:
@@ -29,13 +29,13 @@
     networks:
       - carbon_net
       
-  carboncreditdb:
+  carbonblockchaindb:
     image: postgres
-    container_name: CarbonCreditDb
+    container_name: CarbonBlockchainDb
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: carbon2025
-      POSTGRES_DB: carboncredit
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: CarbonBlockchain
     ports:
       - "5434:5434"
     volumes:

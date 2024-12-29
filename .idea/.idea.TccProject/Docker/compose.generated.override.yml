@@ -1,0 +1,40 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  carbonblockchain:
+    build:
+      context: "C:\\Users\\lucas\\OneDrive\\Documentos\\projects\\tcc2\\TccProject"
+      dockerfile: "CarbonBlockchain/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net9.0/CarbonBlockchain.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "carbonblockchain:dev"
+    ports: []
+    volumes:
+    - "C:\\Users\\lucas\\OneDrive\\Documentos\\projects\\tcc2\\TccProject\\CarbonBlockchain:/app:rw"
+    - "C:\\Users\\lucas\\OneDrive\\Documentos\\projects\\tcc2\\TccProject:/src:rw"
+    - "C:\\Users\\lucas\\.nuget\\packages:/home/app/.nuget/packages"
+    working_dir: "/app"
+  carboncertifier:
+    build:
+      context: "C:\\Users\\lucas\\OneDrive\\Documentos\\projects\\tcc2\\TccProject"
+      dockerfile: "CarbonCertifier/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net9.0/CarbonCertifier.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "carboncertifier:dev"
+    ports: []
+    volumes:
+    - "C:\\Users\\lucas\\OneDrive\\Documentos\\projects\\tcc2\\TccProject\\CarbonCertifier:/app:rw"
+    - "C:\\Users\\lucas\\OneDrive\\Documentos\\projects\\tcc2\\TccProject:/src:rw"
+    - "C:\\Users\\lucas\\.nuget\\packages:/home/app/.nuget/packages"
+    working_dir: "/app"

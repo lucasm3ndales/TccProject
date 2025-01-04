@@ -1,4 +1,5 @@
-﻿using CarbonCertifier.Data;
+﻿using CarbonCertifier.Converters;
+using CarbonCertifier.Data;
 using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Services.CarbonCredit;
@@ -14,18 +15,31 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
         try
         {
             var carbonProject = dto.Adapt<CarbonProjectEntity>();
-
-            var dbResult = await dbContext.CarbonProjects.AddAsync(carbonProject);
-
+            carbonProject.StartDate = DateTimeConverter.ConvertStringToDateTime(dto.StartDate);
             
-            await carbonCreditService.SetCarbonCreditsAsync(dbResult.Entity);
+            if (!string.IsNullOrEmpty(dto.EndDate))
+            {
+                carbonProject.EndDate = DateTimeConverter.ConvertStringToDateTime(dto.EndDate);
+            }
 
+            if (!string.IsNullOrEmpty(dto.CertificationDate) &&
+                !string.IsNullOrWhiteSpace(dto.CertificationExpiryDate))
+            {
+                carbonProject.CertificationDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationDate);
+                carbonProject.CertificationExpiryDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationExpiryDate);
+            }
+            
+            var dbResult = await dbContext.CarbonProjects.AddAsync(carbonProject);
+            
             await dbContext.SaveChangesAsync();
+            
+            _ = Task.Run(async () => await carbonCreditService.SetCarbonCreditsAsync(dbResult.Entity));
             
             return carbonProject.Adapt<CarbonProjectDto>();
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error creating carbon project: {ex.Message}");
             throw new Exception("Error creating carbon project.", ex);
         }
     }
@@ -39,6 +53,20 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
             if (dbResult == null) throw new NullReferenceException("Carbon project not found.");
 
             dbResult = dto.Adapt<CarbonProjectEntity>();
+            dbResult.StartDate = DateTimeConverter.ConvertStringToDateTime(dto.StartDate);
+
+            
+            if (!string.IsNullOrEmpty(dto.EndDate))
+            {
+                dbResult.EndDate = DateTimeConverter.ConvertStringToDateTime(dto.EndDate);
+            }
+
+            if (!string.IsNullOrEmpty(dto.CertificationDate) &&
+                !string.IsNullOrWhiteSpace(dto.CertificationExpiryDate))
+            {
+                dbResult.CertificationDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationDate);
+                dbResult.CertificationExpiryDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationExpiryDate);
+            }
 
             await dbContext.SaveChangesAsync();
 
@@ -46,6 +74,7 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error updating carbon project: {ex.Message}");
             throw new Exception("Error updating carbon project.", ex);
         }
     }
@@ -60,6 +89,7 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error deleting carbon project: {ex.Message}");
             throw new Exception("Error deleting carbon project.", ex);
         }
     }
@@ -76,6 +106,7 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error getting carbon project: {ex.Message}");
             throw new Exception("Error getting carbon project.", ex);
         }
     }
@@ -94,6 +125,7 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error getting carbon projects: {ex.Message}");
             throw new Exception("Error getting carbon projects.", ex);
         }
     }

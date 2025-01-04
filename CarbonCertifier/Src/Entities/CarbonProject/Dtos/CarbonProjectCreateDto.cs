@@ -9,7 +9,7 @@ public record CarbonProjectCreateDto()
     public string StartDate { get; set; }
     public string? EndDate { get; set; }
     public string Status { get; set; }
-    public string Owner { get; set; }
+    public string Developer { get; set; }
     public string Methodology { get; set; }
     public double EstimateEmissionReductions { get; set; }
     public double? EmissionReductions { get; set; }

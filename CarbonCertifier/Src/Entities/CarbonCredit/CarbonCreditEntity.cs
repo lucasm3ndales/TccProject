@@ -1,6 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using CarbonCertifier.Entities.CarbonProject;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,8 +17,8 @@ public class CarbonCreditEntity
     public double TonCO2Quantity { get; set; }
     public bool IsRetired { get; set; }
     public DateTime? RetireAt { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime ModifiedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
     public double PricePerTon { get; set; }
     public string Owner { get; set; }
     public CarbonProjectEntity CarbonProject { get; set; }

@@ -1,6 +1,6 @@
 using CarbonCertifier.Data;
 using CarbonCertifier.Middlewares.ExceptionMiddleware;
-using CarbonCertifier.Middlewares.WebSocketMiddleware.extensions;
+using CarbonCertifier.Middlewares.WebSocketMiddleware;
 using CarbonCertifier.Services.CarbonCredit;
 using CarbonCertifier.Services.CarbonProject;
 using CarbonCertifier.Services.Wss;
@@ -16,6 +16,7 @@ builder.Services.AddScoped<ICarbonProjectService, CarbonProjectService>();
 
 builder.Services.AddScoped<ICarbonCreditService, CarbonCreditService>();
 
+builder.Services.AddSingleton<WebSocketHostedService>();
 builder.Services.AddHostedService<WebSocketHostedService>();
 
 builder.Services.AddDbContext<CarbonCertifierDbContext>(options =>
@@ -29,7 +30,8 @@ var app = builder.Build();
 
 app.MapOpenApi();
 app.UseMiddleware<ExceptionMiddleware>();
-app.MapControllers();
 app.UseHttpsRedirection();
-app.UseWebSocketMiddleware();
+app.UseMiddleware<WebSocketMiddleware>();
+app.MapControllers();
+
 app.Run();

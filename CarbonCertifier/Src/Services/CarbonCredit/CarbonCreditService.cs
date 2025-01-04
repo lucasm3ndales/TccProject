@@ -1,5 +1,6 @@
 ﻿using CarbonCertifier.Data;
 using CarbonCertifier.Entities.CarbonProject;
+using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Entities.CreditCarbon;
 using CarbonCertifier.Entities.CreditCarbon.Dtos;
 using Mapster;
@@ -15,22 +16,35 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
         {
             var random = new Random();
         
-            var createCounter = random.Next(25, 121);
+            var createCounter = random.Next(10, 50);
             
-            var carbonCredits = Enumerable
-                .Range(1, createCounter)
-                .Select(_ => new CarbonCreditEntity
+            var currentYear = DateTime.UtcNow.Year;
+            
+            var tasks = new List<Task<CarbonCreditEntity>>();
+
+            for (var i = 0; i < createCounter; i++)
+            {
+                var task = Task.Run(() => new CarbonCreditEntity
                 {
-                    VintageYear = DateTime.Now.Year, 
-                    TonCO2Quantity = Math.Round(random.NextDouble() * (10 - 1) + 1, 2), // Quantidade entre 1 e 10 toneladas
-                    PricePerTon = Math.Round(random.NextDouble() * (50 - 10) + 10, 2),  // Preço entre 10 e 50 por tonelada
-                    Owner = carbonProject.Developer, 
+                    VintageYear = currentYear,
+                    TonCO2Quantity = Math.Round(random.NextDouble() * (10 - 1) + 1, 2),
+                    PricePerTon = Math.Round(random.NextDouble() * (50 - 10) + 10, 2),
+                    Owner = carbonProject.Developer,
                     IsRetired = false,
-                    CarbonProject = carbonProject 
-                })
-                .ToList();
+                    CarbonProject = carbonProject
+                });
+
+                tasks.Add(task);
+            }
             
-            carbonProject.CarbonCredits = carbonCredits;
+            
+            var carbonCredits = await Task.WhenAll(tasks);
+
+            await dbContext.CarbonCredits.AddRangeAsync(carbonCredits);
+
+            carbonProject.CarbonCredits = carbonCredits.ToList();
+        
+            await dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -63,7 +77,14 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
                 .ToListAsync();
             
             return dbResult
-                .Select(e => e.Adapt<CarbonCreditDto>())
+                .Select(e =>
+                {
+                    var carbonCreditDto = e.Adapt<CarbonCreditDto>();
+                    
+                    carbonCreditDto.CarbonProject = e.CarbonProject.Adapt<CarbonProjectDto>(); 
+                    
+                    return carbonCreditDto;
+                })
                 .ToList();
         }
         catch (Exception ex)

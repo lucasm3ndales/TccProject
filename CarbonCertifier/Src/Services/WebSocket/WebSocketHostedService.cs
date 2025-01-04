@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using CarbonCertifier.Entities.CreditCarbon.Dtos;
 using CarbonCertifier.Services.CarbonCredit;
 
 namespace CarbonCertifier.Services.Wss;
@@ -10,11 +11,10 @@ public class WebSocketHostedService(IServiceProvider provider) : BackgroundServi
 {
     private Timer Timer { get; set; }
     private List<WebSocket> ConnectedClients { get; set; } = [];
+    
+    private readonly ICarbonCreditService _carbonCreditService = provider.CreateScope().ServiceProvider.GetService<ICarbonCreditService>();
 
-    private readonly ICarbonCreditService _carbonCreditService =
-        provider.CreateScope().ServiceProvider.GetRequiredService<ICarbonCreditService>();
-
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken ct)
     {
         Timer = new Timer(DoWorkAsync, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
         return Task.CompletedTask;
@@ -25,7 +25,7 @@ public class WebSocketHostedService(IServiceProvider provider) : BackgroundServi
         try
         {
             var carbonCredits = await _carbonCreditService.GetAllAsync();
-
+            
             if (carbonCredits.Any())
             {
                 var json = JsonSerializer.Serialize(carbonCredits);
@@ -50,7 +50,7 @@ public class WebSocketHostedService(IServiceProvider provider) : BackgroundServi
                 if (c.State == WebSocketState.Open)
                 {
                     var buffer = Encoding.UTF8.GetBytes(json);
-                    await c.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
+                    await c.SendAsync(buffer, WebSocketMessageType.Text, true, new CancellationToken());
                 }
                 else
                 {

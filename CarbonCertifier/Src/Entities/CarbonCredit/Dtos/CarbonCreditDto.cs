@@ -1,4 +1,4 @@
-﻿using CarbonCertifier.Entities.CarbonProject;
+﻿using CarbonCertifier.Entities.CarbonProject.Dtos;
 
 namespace CarbonCertifier.Entities.CreditCarbon.Dtos;
 
@@ -14,5 +14,5 @@ public record CarbonCreditDto()
     public DateTime ModifiedAt { get; set; }
     public double PricePerTon { get; set; }
     public string Owner { get; set; }
-    public CarbonProjectEntity CarbonProject { get; set; }
+    public CarbonProjectDto CarbonProject { get; set; }
 };

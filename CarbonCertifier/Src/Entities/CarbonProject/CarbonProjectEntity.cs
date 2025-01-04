@@ -29,8 +29,8 @@ public class CarbonProjectEntity
     public DateTime? CertificationDate { get; set; }
     public DateTime? CertificationExpiryDate { get; set; }
     public string? CertificationKey { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime ModifiedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
     public ICollection<CarbonCreditEntity> CarbonCredits { get; set; } = [];
 }
 

@@ -14,39 +14,30 @@ public class ExceptionMiddleware(RequestDelegate next)
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Exception catch: {ex.Message}");
             await HandleExceptionAsync(httpContext, ex);
         }
     }
 
     private async Task HandleExceptionAsync(HttpContext httpContext, Exception ex)
     {
-        httpContext.Response.ContentType = "application/json";
-        httpContext.Response.StatusCode = (int) GetHttpStatusCode(ex);
-
         var response = BuildHttpResponse(ex);
-        var json = JsonSerializer.Serialize(response);
-
-        await httpContext.Response.WriteAsync(json);
-    }
-
-    private HttpStatusCode GetHttpStatusCode(Exception ex)
-    {
-        return ex switch
-        {
-            NullReferenceException => HttpStatusCode.NotFound,
-            ArgumentException => HttpStatusCode.BadRequest,
-            _ => HttpStatusCode.InternalServerError
-        };
+        
+        httpContext.Response.ContentType = "application/json";
+        httpContext.Response.StatusCode = response.StatusCode;
+        
+        await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 
     private ExceptionResponseDto BuildHttpResponse(Exception ex)
     {
         return ex switch
         {
-            NullReferenceException => new ExceptionResponseDto(HttpStatusCode.NotFound, GetMessage(ex, "Not Found Resource.")),
-            ArgumentException => new ExceptionResponseDto(HttpStatusCode.BadRequest, GetMessage(ex, "Arguments of request are invalid.")),
-            _ => new ExceptionResponseDto(HttpStatusCode.InternalServerError, GetMessage(ex, "Internal server error."))
+            ArgumentOutOfRangeException =>  new ExceptionResponseDto((int)HttpStatusCode.BadRequest, GetMessage(ex, "Arguments of request are out of range of valid values.")),
+            ArgumentNullException => new ExceptionResponseDto((int)HttpStatusCode.BadRequest, GetMessage(ex, "Some arguments of request are null.")),
+            ArgumentException => new ExceptionResponseDto((int)HttpStatusCode.BadRequest, GetMessage(ex, "Some arguments of request are invalid.")),
+            NullReferenceException => new ExceptionResponseDto((int)HttpStatusCode.NotFound, GetMessage(ex, "Not Found Resource.")),
+            _ => new ExceptionResponseDto((int)HttpStatusCode.InternalServerError, GetMessage(ex, "Internal server error."))
         };
     }
 

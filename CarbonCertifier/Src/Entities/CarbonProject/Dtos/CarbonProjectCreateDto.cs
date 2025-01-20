@@ -1,6 +1,6 @@
 ﻿namespace CarbonCertifier.Entities.CarbonProject.Dtos;
 
-public record CarbonProjectCreateDto()
+public class CarbonProjectCreateDto()
 {
     public string Name { get; set; }
     public string Description { get; set; }

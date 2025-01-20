@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CarbonCertifier.Controllers.CreditCarbon;
 
 [ApiController]
-[Route("v1/carbonCredit")]
+[Route("v1/carbonCredits")]
 public class CreditCarbonController(ICarbonCreditService carbonCreditService, IWebSocketService webSocketService) : ControllerBase
 {
     /// <summary>
@@ -29,6 +29,9 @@ public class CreditCarbonController(ICarbonCreditService carbonCreditService, IW
         return Ok(response);
     }
 
+    /// <summary>
+    /// Atualiza os clientes conectados sobre os créditos de carbono e recebe atualizações
+    /// </summary>
     [HttpGet("stream")]
     public async Task GetCarbonCreditStreamAsync()
     {
@@ -42,6 +45,6 @@ public class CreditCarbonController(ICarbonCreditService carbonCreditService, IW
 
         await webSocketService.ConnectAsync(webSocket, 
             await carbonCreditService.GetAllAsync(), 
-            await carbonCreditService.HandleWebSocketDataUpdateAsync());
+            carbonCreditService.HandleWebSocketMessageUpdateAsync);
     }
 }

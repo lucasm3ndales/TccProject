@@ -2,7 +2,7 @@
 
 namespace CarbonCertifier.Entities.CreditCarbon.Dtos;
 
-public record CarbonCreditDto()
+public class CarbonCreditDto()
 {
     public long Id { get; set; }
     public Guid CreditCode { get; set; }

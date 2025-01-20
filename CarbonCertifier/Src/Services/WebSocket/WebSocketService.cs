@@ -5,7 +5,7 @@ using CarbonCertifier.Services.Wss.Dtos;
 
 namespace CarbonCertifier.Services.Wss;
 
-public class WebSocketHostedService(IConfiguration configuration) : BackgroundService, IWebSocketService
+public class WebSocketService(IConfiguration configuration) : BackgroundService, IWebSocketService
 {
     private readonly Dictionary<Guid, WebSocket> _clients = new();
     private readonly byte[] _buffer = new byte[1024 * 4];
@@ -14,7 +14,7 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
     
     protected override Task ExecuteAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public async Task ConnectAsync(WebSocket webSocket, object? message, Func<WebSocketDataDto?, Task> onMessage)
+    public async Task ConnectAsync(WebSocket webSocket, object? message, Func<WebSocketMessageDto?, Task> onMessage)
     {
         var clientId = Guid.NewGuid();
     
@@ -39,7 +39,7 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
                 {
                     var receivedMessage = Encoding.UTF8.GetString(_buffer, 0, response.Count);
                     
-                    await HandleReceivedMessageResponseAsync(webSocket, receivedMessage, onMessage);
+                    await HandleReceivedMessageAsync(webSocket, receivedMessage, onMessage);
                 }
 
                 if (response.MessageType == WebSocketMessageType.Close && webSocket.CloseStatus.HasValue)
@@ -75,7 +75,7 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
                 
                 _clients[clientId] = newSocket;
 
-                var responseDto = new WebSocketDataDto(
+                var responseDto = new WebSocketMessageDto(
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Reconnected successfully.");
@@ -112,25 +112,25 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
         }
     }
 
-    private async Task HandleReceivedMessageResponseAsync(WebSocket webSocket, string message, Func<WebSocketDataDto?, Task> onMessage)
+    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<WebSocketMessageDto?, Task> onMessage)
     {
         try
         {
-            WebSocketDataDto? responseDto = null;
+            WebSocketMessageDto? responseDto = null;
             
-            var json = JsonSerializer.Deserialize<WebSocketDataDto>(message);
+            var json = JsonSerializer.Deserialize<WebSocketMessageDto>(message);
             
-            if (json == null)
+            if (json == null || json.Message == null)
             {
-                responseDto = new WebSocketDataDto(
+                responseDto = new WebSocketMessageDto(
                     400,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Invalid message: Message cannot be empty.");
+                    "Message cannot be empty.");
             }
 
-            if (json != null)
+            if (json != null && json.Message != null)
             {
-                responseDto = new WebSocketDataDto(
+                responseDto = new WebSocketMessageDto(
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message received successfully!");

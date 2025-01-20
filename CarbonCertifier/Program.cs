@@ -22,9 +22,9 @@ builder.Services.AddScoped<ICarbonProjectService, CarbonProjectService>();
 
 builder.Services.AddScoped<ICarbonCreditService, CarbonCreditService>();
 
-builder.Services.AddSingleton<WebSocketHostedService>();
+builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
 
-builder.Services.AddHostedService<WebSocketHostedService>();
+builder.Services.AddHostedService<WebSocketService>();
 
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5207));
 

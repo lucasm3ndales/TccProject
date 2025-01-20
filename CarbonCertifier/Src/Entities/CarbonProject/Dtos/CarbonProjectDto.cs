@@ -2,7 +2,7 @@
 
 namespace CarbonCertifier.Entities.CarbonProject.Dtos;
 
-public record CarbonProjectDto
+public class CarbonProjectDto
 {
     public long Id { get; set; }
     public Guid ProjectCode { get; set; }

@@ -1,5 +1,4 @@
-﻿using System.Net.WebSockets;
-using CarbonCertifier.Entities.CarbonProject;
+﻿using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CreditCarbon.Dtos;
 using CarbonCertifier.Services.Wss.Dtos;
 
@@ -13,5 +12,5 @@ public interface ICarbonCreditService
 
     Task<List<CarbonCreditDto>> GetAllAsync();
     
-    Task HandleWebSocketDataUpdateAsync(WebSocketDataDto? dto);
+    Task HandleWebSocketMessageUpdateAsync(WebSocketMessageDto? dto);
 }

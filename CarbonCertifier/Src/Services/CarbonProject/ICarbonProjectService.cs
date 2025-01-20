@@ -1,5 +1,4 @@
-﻿using CarbonCertifier.Entities.CarbonProject;
-using CarbonCertifier.Entities.CarbonProject.Dtos;
+﻿using CarbonCertifier.Entities.CarbonProject.Dtos;
 
 namespace CarbonCertifier.Services.CarbonProject;
 

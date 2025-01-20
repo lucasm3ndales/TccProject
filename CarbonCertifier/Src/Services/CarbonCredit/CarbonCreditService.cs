@@ -3,6 +3,7 @@ using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Entities.CreditCarbon;
 using CarbonCertifier.Entities.CreditCarbon.Dtos;
+using CarbonCertifier.Services.Wss.Dtos;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -91,6 +92,21 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
         {
             throw new Exception("Error getting carbon credits.", ex);
 
+        }
+    }
+    
+    public async Task HandleWebSocketMessageUpdateAsync(WebSocketMessageDto? dto)
+    {
+        try
+        {
+            if (dto.Message is List<CarbonCreditDto>)
+            {
+                Console.WriteLine($"WebSocket received message: {dto}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error handling websocket message: {ex.Message}");
         }
     }
     

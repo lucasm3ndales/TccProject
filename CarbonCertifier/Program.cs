@@ -3,8 +3,7 @@ using CarbonCertifier.Data;
 using CarbonCertifier.Middlewares.ExceptionMiddleware;
 using CarbonCertifier.Services.CarbonCredit;
 using CarbonCertifier.Services.CarbonProject;
-using CarbonCertifier.Services.Wss;
-using Microsoft.AspNetCore.WebSockets;
+using CarbonCertifier.Services.WebSocketHosted;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,9 +21,9 @@ builder.Services.AddScoped<ICarbonProjectService, CarbonProjectService>();
 
 builder.Services.AddScoped<ICarbonCreditService, CarbonCreditService>();
 
-builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
+builder.Services.AddSingleton<IWebSocketHostedService, WebSocketHostedService>();
 
-builder.Services.AddHostedService<WebSocketService>();
+builder.Services.AddHostedService<WebSocketHostedService>();
 
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5207));
 

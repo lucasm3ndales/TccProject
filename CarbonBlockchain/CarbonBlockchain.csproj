@@ -30,4 +30,10 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Src\Controllers\" />
+      <Folder Include="Src\Converters\" />
+      <Folder Include="Src\Entities\" />
+    </ItemGroup>
+
 </Project>

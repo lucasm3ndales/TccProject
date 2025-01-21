@@ -4,6 +4,8 @@
     build:
       context: .
       dockerfile: CarbonCertifier/Dockerfile
+    ports:
+      - "5207:5207"
     networks:
       - carbon_net
 

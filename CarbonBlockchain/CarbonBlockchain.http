@@ -1,6 +1,0 @@
-@CarbonBlockchain_HostAddress = http://localhost:5193
-
-GET {{CarbonBlockchain_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

@@ -1,11 +1,11 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using CarbonCertifier.Services.Wss.Dtos;
+using CarbonCertifier.Services.WebSocketHosted.Dtos;
 
-namespace CarbonCertifier.Services.Wss;
+namespace CarbonCertifier.Services.WebSocketHosted;
 
-public class WebSocketService(IConfiguration configuration) : BackgroundService, IWebSocketService
+public class WebSocketHostedService(IConfiguration configuration) : BackgroundService, IWebSocketHostedService
 {
     private readonly Dictionary<Guid, WebSocket> _clients = new();
     private readonly byte[] _buffer = new byte[1024 * 4];
@@ -27,7 +27,6 @@ public class WebSocketService(IConfiguration configuration) : BackgroundService,
             
             if (message != null)
             {
-                var buffer = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
                 await SendMessageAsync(webSocket, message);
             }
 
@@ -118,9 +117,9 @@ public class WebSocketService(IConfiguration configuration) : BackgroundService,
         {
             WebSocketMessageDto? responseDto = null;
             
-            var json = JsonSerializer.Deserialize<WebSocketMessageDto>(message);
+            var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message);
             
-            if (json == null || json.Message == null)
+            if (jsonMessage == null || jsonMessage.Message == null)
             {
                 responseDto = new WebSocketMessageDto(
                     400,
@@ -128,14 +127,14 @@ public class WebSocketService(IConfiguration configuration) : BackgroundService,
                     "Message cannot be empty.");
             }
 
-            if (json != null && json.Message != null)
+            if (jsonMessage != null && jsonMessage.Message != null)
             {
                 responseDto = new WebSocketMessageDto(
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message received successfully!");
                 
-                var data = JsonSerializer.Serialize(json.Message);
+                var data = JsonSerializer.Serialize(jsonMessage.Message);
                 
                 await onMessage(data);
             }

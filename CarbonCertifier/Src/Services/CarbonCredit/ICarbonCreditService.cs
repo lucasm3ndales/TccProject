@@ -1,6 +1,5 @@
 ﻿using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CreditCarbon.Dtos;
-using CarbonCertifier.Services.Wss.Dtos;
 
 namespace CarbonCertifier.Services.CarbonCredit;
 
@@ -12,5 +11,5 @@ public interface ICarbonCreditService
 
     Task<List<CarbonCreditDto>> GetAllAsync();
     
-    Task HandleWebSocketMessageUpdateAsync(WebSocketMessageDto? dto);
+    Task HandleWebSocketMessageUpdateAsync(string raw);
 }

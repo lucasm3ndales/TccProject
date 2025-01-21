@@ -1,9 +1,9 @@
-﻿using CarbonCertifier.Data;
+﻿using System.Text.Json;
+using CarbonCertifier.Data;
 using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Entities.CreditCarbon;
 using CarbonCertifier.Entities.CreditCarbon.Dtos;
-using CarbonCertifier.Services.Wss.Dtos;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -95,18 +95,42 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
         }
     }
     
-    public async Task HandleWebSocketMessageUpdateAsync(WebSocketMessageDto? dto)
+    public async Task cc(string raw)
     {
         try
         {
-            if (dto.Message is List<CarbonCreditDto>)
+            var carbonCredits = JsonSerializer.Deserialize<List<CarbonCreditDto>>(raw);
+            if (carbonCredits != null && carbonCredits.Count > 0)
             {
-                Console.WriteLine($"WebSocket received message: {dto}");
+                await UpdateCarbonCreditsAsync(carbonCredits);
             }
+            
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error handling websocket message: {ex.Message}");
+        }
+    }
+
+    public async Task UpdateCarbonCreditsAsync(List<CarbonCreditDto> carbonCredits)
+    {
+        try
+        {
+            var tasks = carbonCredits.Select(async i =>
+            {
+                var entity = await dbContext.CarbonCredits.Where(e => e.CreditCode == i.CreditCode).FirstOrDefaultAsync();
+
+                entity.Adapt(i);
+                
+                await dbContext.SaveChangesAsync();
+            });
+
+            await Task.WhenAll(tasks);
+            Console.WriteLine("Carbon credits updated successfully!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating carbon credits: {ex.Message}");
         }
     }
     

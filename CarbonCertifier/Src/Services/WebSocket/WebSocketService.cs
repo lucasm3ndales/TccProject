@@ -14,7 +14,7 @@ public class WebSocketService(IConfiguration configuration) : BackgroundService,
     
     protected override Task ExecuteAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public async Task ConnectAsync(WebSocket webSocket, object? message, Func<WebSocketMessageDto?, Task> onMessage)
+    public async Task ConnectAsync(WebSocket webSocket, object? message, Func<string?, Task> onMessage)
     {
         var clientId = Guid.NewGuid();
     
@@ -112,7 +112,7 @@ public class WebSocketService(IConfiguration configuration) : BackgroundService,
         }
     }
 
-    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<WebSocketMessageDto?, Task> onMessage)
+    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<string?, Task> onMessage)
     {
         try
         {
@@ -135,7 +135,9 @@ public class WebSocketService(IConfiguration configuration) : BackgroundService,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message received successfully!");
                 
-                await onMessage(json);
+                var data = JsonSerializer.Serialize(json.Message);
+                
+                await onMessage(data);
             }
 
             await SendMessageAsync(webSocket, responseDto);

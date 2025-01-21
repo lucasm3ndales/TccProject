@@ -95,7 +95,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
         }
     }
     
-    public async Task cc(string raw)
+    public async Task HandleWebSocketMessageUpdateAsync(string raw)
     {
         try
         {

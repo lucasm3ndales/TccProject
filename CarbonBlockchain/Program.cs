@@ -18,6 +18,7 @@ builder.Services.AddDbContext<CarbonBlockchainDbContext>(options =>
 
 
 builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
+builder.Services.AddSingleton<IBesuClientService, BesuClientService>();
 
 builder.Services.AddHostedService<WebSocketService>();
 

@@ -1,6 +1,9 @@
 using System.Net;
 using CarbonBlockchain.Data;
 using CarbonBlockchain.Middlewares.Exception;
+using CarbonBlockchain.Services;
+using CarbonBlockchain.Services.BesuClient;
+using CarbonBlockchain.Services.CarbonCreditHandler;
 using CarbonBlockchain.Services.WebSocketHosted;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,14 +18,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<CarbonBlockchainDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbStringConnection")));
 
+builder.Services.AddScoped<ICarbonCreditHandlerService, CarbonCreditHandlerService>();
 
-
-builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
+builder.Services.AddSingleton<IWebSocketHostedClientService, WebSocketHostedClientService>();
 builder.Services.AddSingleton<IBesuClientService, BesuClientService>();
 
-builder.Services.AddHostedService<WebSocketService>();
+builder.Services.AddHostedService<WebSocketHostedClientService>();
 
-builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5309));
+builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5307));
 
 builder.Services.AddControllers();
 

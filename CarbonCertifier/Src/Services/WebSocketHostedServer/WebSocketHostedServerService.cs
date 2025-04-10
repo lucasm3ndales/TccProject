@@ -5,26 +5,26 @@ using CarbonCertifier.Services.WebSocketHosted.Dtos;
 
 namespace CarbonCertifier.Services.WebSocketHosted;
 
-public class WebSocketHostedService(IConfiguration configuration) : BackgroundService, IWebSocketHostedService
+public class WebSocketHostedServerService(IConfiguration configuration): BackgroundService, IWebSocketHostedServerService
 {
     private readonly Dictionary<Guid, WebSocket> _clients = new();
     private readonly byte[] _buffer = new byte[1024 * 4];
     private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(5);
-    private readonly string? _webSocketConnection = configuration.GetConnectionString("WebSocketConnection");
-    
+    private readonly string? _webSocketConnectionUrl = configuration.GetConnectionString("WebSocketConnection");
+
     protected override Task ExecuteAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     public async Task ConnectAsync(WebSocket webSocket, object? message, Func<string?, Task> onMessage)
     {
         var clientId = Guid.NewGuid();
-    
+
         _clients[clientId] = webSocket;
-        
+
         Console.WriteLine($"Client {clientId} start connection.");
 
         try
         {
-            
+
             if (message != null)
             {
                 await SendMessageAsync(webSocket, message);
@@ -37,7 +37,7 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
                 if (response.MessageType == WebSocketMessageType.Text)
                 {
                     var receivedMessage = Encoding.UTF8.GetString(_buffer, 0, response.Count);
-                    
+
                     await HandleReceivedMessageAsync(webSocket, receivedMessage, onMessage);
                 }
 
@@ -67,18 +67,18 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
             try
             {
                 var newSocket = new ClientWebSocket();
-                
-                await newSocket.ConnectAsync(new Uri(_webSocketConnection!), CancellationToken.None);
+
+                await newSocket.ConnectAsync(new Uri(_webSocketConnectionUrl!), CancellationToken.None);
 
                 Console.WriteLine($"Client {clientId} reconnected successfully.");
-                
+
                 _clients[clientId] = newSocket;
 
                 var responseDto = new WebSocketMessageDto(
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Reconnected successfully.");
-                
+
                 await SendMessageAsync(newSocket, responseDto);
 
                 break;
@@ -116,9 +116,14 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
         try
         {
             WebSocketMessageDto? responseDto = null;
-            
-            var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message);
-            
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
+
             if (jsonMessage == null || jsonMessage.Message == null)
             {
                 responseDto = new WebSocketMessageDto(
@@ -133,9 +138,9 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message received successfully!");
-                
+
                 var data = JsonSerializer.Serialize(jsonMessage.Message);
-                
+
                 await onMessage(data);
             }
 
@@ -146,6 +151,6 @@ public class WebSocketHostedService(IConfiguration configuration) : BackgroundSe
             Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
 
         }
-    
+
     }
 }

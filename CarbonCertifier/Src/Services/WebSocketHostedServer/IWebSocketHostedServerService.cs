@@ -1,9 +1,8 @@
 ﻿using System.Net.WebSockets;
 
-namespace CarbonBlockchain.Services.WebSocketHosted;
+namespace CarbonCertifier.Services.WebSocketHosted;
 
-public interface IWebSocketService
+public interface IWebSocketHostedServerService
 {
     Task ConnectAsync(WebSocket webSocket, object? message, Func<string?, Task> onMessage);
-
 }

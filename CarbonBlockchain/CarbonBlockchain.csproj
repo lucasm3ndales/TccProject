@@ -9,7 +9,6 @@
 
     <ItemGroup>
         <PackageReference Include="Mapster" Version="7.4.0" />
-        <PackageReference Include="MetaMaskCrypto" Version="1.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.0" />
@@ -20,6 +19,7 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Nethereum.Besu" Version="4.29.0" />
+        <PackageReference Include="Nethereum.JsonRpc.WebSocketClient" Version="4.29.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
         <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
     </ItemGroup>

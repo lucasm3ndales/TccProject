@@ -16,11 +16,11 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
         try
         {
             var random = new Random();
-        
+
             var createCounter = random.Next(10, 50);
-            
+
             var currentYear = DateTime.UtcNow.Year;
-            
+
             var tasks = new List<Task<CarbonCreditEntity>>();
 
             for (var i = 0; i < createCounter; i++)
@@ -37,19 +37,19 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
 
                 tasks.Add(task);
             }
-            
-            
+
+
             var carbonCredits = await Task.WhenAll(tasks);
 
             await dbContext.CarbonCredits.AddRangeAsync(carbonCredits);
 
             carbonProject.CarbonCredits = carbonCredits.ToList();
-        
+
             await dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-           throw new Exception("Error setting carbon credits in carbon project.", ex);
+            throw new Exception("Error setting carbon credits in carbon project.", ex);
         }
     }
 
@@ -76,14 +76,14 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
             var dbResult = await dbContext.CarbonCredits
                 .Include(e => e.CarbonProject)
                 .ToListAsync();
-            
+
             return dbResult
                 .Select(e =>
                 {
                     var carbonCreditDto = e.Adapt<CarbonCreditDto>();
-                    
-                    carbonCreditDto.CarbonProject = e.CarbonProject.Adapt<CarbonProjectDto>(); 
-                    
+
+                    carbonCreditDto.CarbonProject = e.CarbonProject.Adapt<CarbonProjectDto>();
+
                     return carbonCreditDto;
                 })
                 .ToList();
@@ -94,7 +94,8 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
 
         }
     }
-    
+
+    //TODO: Implementar atualização de carbon credits via websocket
     public async Task HandleWebSocketMessageUpdateAsync(string raw)
     {
         try
@@ -104,7 +105,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
             {
                 await UpdateCarbonCreditsAsync(carbonCredits);
             }
-            
+
         }
         catch (Exception ex)
         {
@@ -121,7 +122,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
                 var entity = await dbContext.CarbonCredits.Where(e => e.CreditCode == i.CreditCode).FirstOrDefaultAsync();
 
                 entity.Adapt(i);
-                
+
                 await dbContext.SaveChangesAsync();
             });
 
@@ -133,5 +134,5 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext) : ICarbonCr
             Console.WriteLine($"Error updating carbon credits: {ex.Message}");
         }
     }
-    
+
 }

@@ -1,0 +1,36 @@
+{
+    "version": "1.0.0",
+    "configurations": [
+        {
+            "name": "CarbonCertifier",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/CarbonCertifier/bin/Debug/net9.0/CarbonCertifier.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/CarbonCertifier",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": "CarbonBlockchain",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/CarbonBlockchain/bin/Debug/net9.0/CarbonBlockchain.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/CarbonBlockchain",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "RunAll",
+            "configurations": [
+                "CarbonCertifier",
+                "CarbonBlockchain"
+            ]
+        }
+    ]
+}

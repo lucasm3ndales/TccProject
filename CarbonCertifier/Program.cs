@@ -18,12 +18,11 @@ builder.Services.AddDbContext<CarbonCertifierDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbStringConnection")));
 
 builder.Services.AddScoped<ICarbonProjectService, CarbonProjectService>();
-
 builder.Services.AddScoped<ICarbonCreditService, CarbonCreditService>();
 
-builder.Services.AddSingleton<IWebSocketHostedService, WebSocketHostedService>();
+builder.Services.AddSingleton<IWebSocketHostedServerService, WebSocketHostedServerService>();
 
-builder.Services.AddHostedService<WebSocketHostedService>();
+builder.Services.AddHostedService<WebSocketHostedServerService>();
 
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5207));
 

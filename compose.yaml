@@ -14,41 +14,39 @@
     build:
       context: .
       dockerfile: CarbonBlockchain/Dockerfile
-    networks:
-      - carbon_net
-  
-  carboncertifierdb:
-    image: postgres
-    container_name: CarbonCertifierDb
-    environment:
-      POSTGRES_USER: postgres         
-      POSTGRES_PASSWORD: 1234  
-      POSTGRES_DB: CarbonCertifier
     ports:
-      - "5432:5432" 
-    volumes:
-      - certifier_postgres_data:/var/lib/postgresql/data 
+      - "5208:5208"
     networks:
       - carbon_net
       
-  carbonblockchaindb:
+  carbondb:
     image: postgres
-    container_name: CarbonBlockchainDb
+    container_name: CarbonDb
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: CarbonBlockchain
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+
     ports:
-      - "5434:5434"
+      - "5432:5432"
     volumes:
-      - certifier_postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./Scripts/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+      - ./Logs:/var/lib/postgresql/data/pg_logs
+
+    command: >
+      postgres
+      -c logging_collector=on
+      -c log_directory=pg_logs
+      -c log_filename=postgresql.log
+
     networks:
       - carbon_net
-
-volumes:
-  certifier_postgres_data:
-  credit_postgres_data:
     
+volumes:
+  postgres_data:
+
 networks:
   carbon_net:
     driver: bridge

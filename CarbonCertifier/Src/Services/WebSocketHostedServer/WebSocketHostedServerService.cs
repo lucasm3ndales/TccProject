@@ -5,7 +5,7 @@ using CarbonCertifier.Services.WebSocketHosted.Dtos;
 
 namespace CarbonCertifier.Services.WebSocketHosted;
 
-public class WebSocketHostedServerService(IConfiguration configuration): BackgroundService, IWebSocketHostedServerService
+public class WebSocketHostedServerService(IConfiguration configuration) : BackgroundService, IWebSocketHostedServerService
 {
     private readonly Dictionary<Guid, WebSocket> _clients = new();
     private readonly byte[] _buffer = new byte[1024 * 4];
@@ -124,15 +124,23 @@ public class WebSocketHostedServerService(IConfiguration configuration): Backgro
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
 
-            if (jsonMessage == null || jsonMessage.Message == null)
+            if (jsonMessage == null || string.IsNullOrWhiteSpace(jsonMessage.Message as string))
             {
                 responseDto = new WebSocketMessageDto(
                     400,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message cannot be empty.");
             }
+            else if (jsonMessage.Message as string == "Heartbeat")
+            {
+                Console.WriteLine($"Ack received.");
 
-            if (jsonMessage != null && jsonMessage.Message != null)
+                responseDto = new WebSocketMessageDto(
+                    200,
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    "Ack");
+            }
+            else
             {
                 responseDto = new WebSocketMessageDto(
                     200,
@@ -149,8 +157,6 @@ public class WebSocketHostedServerService(IConfiguration configuration): Backgro
         catch (Exception ex)
         {
             Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
-
         }
-
     }
 }

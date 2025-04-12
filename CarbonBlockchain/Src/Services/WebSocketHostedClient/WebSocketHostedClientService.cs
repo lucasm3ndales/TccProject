@@ -1,18 +1,96 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
+using CarbonBlockchain.Services.CarbonCreditHandler;
 using CarbonBlockchain.Services.WebSocketHosted.Dtos;
 
 namespace CarbonBlockchain.Services.WebSocketHosted;
 
-// TODO: Implementar cliente web socket
-public class WebSocketHostedClientService(IConfiguration configuration): BackgroundService, IWebSocketHostedClientService
+public class WebSocketHostedClientService(IConfiguration configuration, ICarbonCreditHandlerService carbonCreditHandlerService) : BackgroundService, IWebSocketHostedClientService
 {
-    private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(5);
+    private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(3);
     private readonly string? _webSocketConnectionUrl = configuration.GetConnectionString("WebSocketConnection");
+    private readonly Channel<object> _messageQueue = Channel.CreateUnbounded<object>();
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken) {   
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
 
+            if (string.IsNullOrEmpty(_webSocketConnectionUrl))
+                throw new ArgumentNullException("Error to start connection. Base URL not configured.");
+
+            try
+            {
+                using var webSocket = new ClientWebSocket();
+
+                await webSocket.ConnectAsync(new Uri(_webSocketConnectionUrl), cancellationToken);
+                Console.WriteLine("Connected in web socket successfully.");
+
+                await Task.WhenAll(
+                    ReceiveMessagesAsync(webSocket, cancellationToken),
+                    ProcessQueueAsync(webSocket, cancellationToken),
+                    SendHeartbeatAsync(webSocket, cancellationToken)
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in connection: {ex.Message}. Attempting to reconnect in {_reconnectInterval.TotalSeconds} seconds...");
+            }
+
+            await Task.Delay(_reconnectInterval, cancellationToken);
+        }
+    }
+
+    private async Task ProcessQueueAsync(WebSocket webSocket, CancellationToken cancellationToken)
+    {
+        while (await _messageQueue.Reader.WaitToReadAsync(cancellationToken))
+        {
+            while (_messageQueue.Reader.TryRead(out var message))
+            {
+                if (webSocket.State == WebSocketState.Open)
+                {
+                    await SendMessageAsync(webSocket, message);
+                }
+                else
+                {
+                    Console.WriteLine("Cannot send message, socket is not open.");
+                }
+            }
+        }
+    }
+
+
+    private async Task SendHeartbeatAsync(WebSocket webSocket, CancellationToken cancellationToken)
+    {
+        while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+        {
+            var heartbeatDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "Heartbeat");
+
+            await SendMessageAsync(webSocket, heartbeatDto);
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+        }
+    }
+
+    private async Task ReceiveMessagesAsync(WebSocket webSocket, CancellationToken cancellationToken)
+    {
+        var buffer = new byte[1024 * 4];
+
+        while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+        {
+            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing connection", cancellationToken);
+            }
+            else if (result.MessageType == WebSocketMessageType.Text)
+            {
+                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                await HandleReceivedMessageAsync(webSocket, message, OnMessage);
+            }
+        }
     }
 
     private async Task SendMessageAsync(WebSocket webSocket, object? message)
@@ -35,6 +113,12 @@ public class WebSocketHostedClientService(IConfiguration configuration): Backgro
         }
     }
 
+
+    public async Task SendMessageAsync(object message)
+    {
+        await _messageQueue.Writer.WriteAsync(message);
+    }
+
     private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<string?, Task> onMessage)
     {
         try
@@ -48,6 +132,11 @@ public class WebSocketHostedClientService(IConfiguration configuration): Backgro
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
 
+            if (jsonMessage.StatusCode == 200 && jsonMessage.Message as string == "Ack")
+            {
+                Console.WriteLine("Heartbeat received by the server.");
+            }
+
             if (jsonMessage == null || jsonMessage.Message == null)
             {
                 responseDto = new WebSocketMessageDto(
@@ -56,7 +145,7 @@ public class WebSocketHostedClientService(IConfiguration configuration): Backgro
                     "Message cannot be empty.");
             }
 
-            if (jsonMessage != null && jsonMessage.Message != null)
+            if (jsonMessage != null && jsonMessage.StatusCode == 200 && jsonMessage.Message != null)
             {
                 responseDto = new WebSocketMessageDto(
                     200,
@@ -75,6 +164,18 @@ public class WebSocketHostedClientService(IConfiguration configuration): Backgro
             Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
 
         }
+    }
 
+    private async Task OnMessage(string? raw)
+    {
+        try
+        {
+            
+        }
+        catch (Exception ex)
+        {
+
+            Console.WriteLine($"Error to read web socket message data: {ex.Message}");
+        }
     }
 }

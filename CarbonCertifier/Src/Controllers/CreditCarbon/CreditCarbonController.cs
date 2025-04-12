@@ -7,7 +7,7 @@ namespace CarbonCertifier.Controllers.CreditCarbon;
 
 [ApiController]
 [Route("v1/carbonCredits")]
-public class CreditCarbonController(ICarbonCreditService carbonCreditService, IWebSocketHostedService webSocketHostedService) : ControllerBase
+public class CreditCarbonController(ICarbonCreditService carbonCreditService, IWebSocketHostedServerService webSocketHostedService) : ControllerBase
 {
     /// <summary>
     /// Busca um crédito de carbono específico
@@ -43,7 +43,8 @@ public class CreditCarbonController(ICarbonCreditService carbonCreditService, IW
         
         var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        await webSocketHostedService.ConnectAsync(webSocket, 
+        await webSocketHostedService.ConnectAsync(
+            webSocket, 
             await carbonCreditService.GetAllAsync(), 
             carbonCreditService.HandleWebSocketMessageUpdateAsync);
     }

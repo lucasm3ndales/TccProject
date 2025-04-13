@@ -3,11 +3,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using CarbonBlockchain.Services.CarbonCreditHandler;
+using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
 using CarbonBlockchain.Services.WebSocketHosted.Dtos;
 
 namespace CarbonBlockchain.Services.WebSocketHosted;
 
-public class WebSocketHostedClientService(IConfiguration configuration, ICarbonCreditHandlerService carbonCreditHandlerService) : BackgroundService, IWebSocketHostedClientService
+public class WebSocketHostedClientService(IConfiguration configuration, IServiceProvider serviceProvider) : BackgroundService, IWebSocketHostedClientService
 {
     private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(3);
     private readonly string? _webSocketConnectionUrl = configuration.GetConnectionString("WebSocketConnection");
@@ -99,7 +100,8 @@ public class WebSocketHostedClientService(IConfiguration configuration, ICarbonC
         {
             var options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true,
+                IncludeFields = true
             };
 
             var json = JsonSerializer.Serialize(message, options);
@@ -127,7 +129,8 @@ public class WebSocketHostedClientService(IConfiguration configuration, ICarbonC
 
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                IncludeFields = true
             };
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
@@ -170,12 +173,61 @@ public class WebSocketHostedClientService(IConfiguration configuration, ICarbonC
     {
         try
         {
-            
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                Console.WriteLine("Message is Empty.");
+                return;
+            }
+
+            object? jsonObj = TryDeserialize(raw);
+
+            var provider = serviceProvider.CreateScope().ServiceProvider;
+
+            switch (jsonObj)
+            {
+                case List<CarbonCreditCertifierDto> dto:
+                    var carbonCreditHandlerService = provider.GetService<ICarbonCreditHandlerService>();
+                    await carbonCreditHandlerService.HandleCarbonCreditsAsync(dto);
+                    break;
+                default:
+                    Console.WriteLine("Unknown message type.");
+                    break;
+            }
         }
         catch (Exception ex)
         {
 
             Console.WriteLine($"Error to read web socket message data: {ex.Message}");
         }
+    }
+
+    private object? TryDeserialize(string raw)
+    {
+        var knownTypes = new List<Type>
+        {
+            typeof(List<CarbonCreditCertifierDto>),
+        };
+
+        foreach (var type in knownTypes)
+        {
+            try
+            {
+                var serializerOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true
+                };
+
+                var obj = JsonSerializer.Deserialize(raw, type, serializerOptions);
+
+                if (obj != null) return obj;
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        return null;
     }
 }

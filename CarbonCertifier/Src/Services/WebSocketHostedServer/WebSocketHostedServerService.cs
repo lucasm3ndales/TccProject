@@ -97,7 +97,7 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
         {
             var options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true
             };
 
             var json = JsonSerializer.Serialize(message, options);
@@ -119,7 +119,9 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
 
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true
+                PropertyNameCaseInsensitive = true,
+                IncludeFields = true
+
             };
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
@@ -147,7 +149,13 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message received successfully!");
 
-                var data = JsonSerializer.Serialize(jsonMessage.Message);
+                var serializerOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true
+                };
+
+                var data = JsonSerializer.Serialize(jsonMessage.Message, serializerOptions);
 
                 await onMessage(data);
             }

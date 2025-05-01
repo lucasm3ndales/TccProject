@@ -18,8 +18,13 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Nethereum.ABI" Version="4.29.0" />
+        <PackageReference Include="Nethereum.Autogen.ContractApi" Version="4.29.0" />
         <PackageReference Include="Nethereum.Besu" Version="4.29.0" />
+        <PackageReference Include="Nethereum.Contracts" Version="4.29.0" />
         <PackageReference Include="Nethereum.JsonRpc.WebSocketClient" Version="4.29.0" />
+        <PackageReference Include="Nethereum.RPC.Reactive" Version="4.29.0" />
+        <PackageReference Include="Nethereum.Web3" Version="4.29.0" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
         <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
     </ItemGroup>

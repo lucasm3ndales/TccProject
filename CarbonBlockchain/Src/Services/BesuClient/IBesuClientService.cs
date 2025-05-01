@@ -1,7 +1,6 @@
-namespace CarbonBlockchain.Services.BesuClient;
+﻿namespace CarbonBlockchain.Services.BesuClient;
 
-public interface IBesuClientService
+public class IBesuClientService
 {
-
+    
 }
-

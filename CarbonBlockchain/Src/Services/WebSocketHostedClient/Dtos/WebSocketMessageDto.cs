@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
+﻿
 namespace CarbonBlockchain.Services.WebSocketHosted.Dtos;
 
 public class WebSocketMessageDto

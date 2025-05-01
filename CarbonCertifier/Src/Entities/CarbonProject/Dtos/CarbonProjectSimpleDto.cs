@@ -1,11 +1,11 @@
 ﻿using CarbonCertifier.Entities.CarbonProject.Enums;
-using CarbonCertifier.Entities.CreditCarbon.Dtos;
 
 namespace CarbonCertifier.Entities.CarbonProject.Dtos;
 
-public class CarbonProjectDto
+public class CarbonProjectSimpleDto
 {
     public string ProjectCode { get; set; }
+
     public string Name { get; set; }
 
     public string Location { get; set; }
@@ -16,6 +16,4 @@ public class CarbonProjectDto
     public CarbonProjectType Type { get; set; }
 
     public CarbonProjectStatus Status { get; set; }
-    public ICollection<CarbonCreditSimpleDto> CarbonCredits { get; set; }
-
 }

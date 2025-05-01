@@ -1,5 +1,4 @@
-﻿using CarbonCertifier.Converters;
-using CarbonCertifier.Data;
+﻿using CarbonCertifier.Data;
 using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Services.CarbonCredit;
@@ -12,33 +11,27 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
 {
     public async Task<CarbonProjectDto> CreateAsync(CarbonProjectCreateDto dto)
     {
+        var transaction = await dbContext.Database.BeginTransactionAsync();
         try
         {
             var carbonProject = dto.Adapt<CarbonProjectEntity>();
-            carbonProject.StartDate = DateTimeConverter.ConvertStringToDateTime(dto.StartDate);
-            
-            if (!string.IsNullOrEmpty(dto.EndDate))
-            {
-                carbonProject.EndDate = DateTimeConverter.ConvertStringToDateTime(dto.EndDate);
-            }
-
-            if (!string.IsNullOrEmpty(dto.CertificationDate) &&
-                !string.IsNullOrWhiteSpace(dto.CertificationExpiryDate))
-            {
-                carbonProject.CertificationDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationDate);
-                carbonProject.CertificationExpiryDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationExpiryDate);
-            }
+            carbonProject.ProjectCode = Guid.NewGuid().ToString();
+            carbonProject.CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            carbonProject.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             
             var dbResult = await dbContext.CarbonProjects.AddAsync(carbonProject);
             
             await dbContext.SaveChangesAsync();
             
-            _ = Task.Run(async () => await carbonCreditService.SetCarbonCreditsAsync(dbResult.Entity));
+            await carbonCreditService.GenerateCarbonCreditsAsync(dbResult.Entity, transaction);
+            
+            await transaction.CommitAsync();
             
             return carbonProject.Adapt<CarbonProjectDto>();
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             Console.WriteLine($"Error creating carbon project: {ex.Message}");
             throw new Exception("Error creating carbon project.", ex);
         }
@@ -46,6 +39,7 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
 
     public async Task<CarbonProjectDto> UpdateAsync(long id, CarbonProjectUpdateDto dto)
     {
+        var transaction = await dbContext.Database.BeginTransactionAsync();
         try
         {
             var dbResult = await dbContext.CarbonProjects.FindAsync(id);
@@ -53,27 +47,16 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
             if (dbResult == null) throw new NullReferenceException("Carbon project not found.");
 
             dbResult = dto.Adapt<CarbonProjectEntity>();
-            dbResult.StartDate = DateTimeConverter.ConvertStringToDateTime(dto.StartDate);
-
-            
-            if (!string.IsNullOrEmpty(dto.EndDate))
-            {
-                dbResult.EndDate = DateTimeConverter.ConvertStringToDateTime(dto.EndDate);
-            }
-
-            if (!string.IsNullOrEmpty(dto.CertificationDate) &&
-                !string.IsNullOrWhiteSpace(dto.CertificationExpiryDate))
-            {
-                dbResult.CertificationDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationDate);
-                dbResult.CertificationExpiryDate = DateTimeConverter.ConvertStringToDateTime(dto.CertificationExpiryDate);
-            }
+            dbResult.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             await dbContext.SaveChangesAsync();
-
+            await transaction.CommitAsync();
+            
             return dbResult.Adapt<CarbonProjectDto>();
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             Console.WriteLine($"Error updating carbon project: {ex.Message}");
             throw new Exception("Error updating carbon project.", ex);
         }
@@ -81,14 +64,21 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
 
     public async Task DeleteAsync(long id)
     {
+        var transaction = await dbContext.Database.BeginTransactionAsync();
         try
         {
-            dbContext.CarbonProjects.Remove(new CarbonProjectEntity { Id = id });
+            var dbResult = await dbContext.CarbonProjects.FindAsync(id);
+
+            if (dbResult == null) throw new NullReferenceException("Carbon project not found.");
+            
+            dbContext.CarbonProjects.Remove(dbResult);
 
             await dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             Console.WriteLine($"Error deleting carbon project: {ex.Message}");
             throw new Exception("Error deleting carbon project.", ex);
         }
@@ -129,6 +119,4 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
             throw new Exception("Error getting carbon projects.", ex);
         }
     }
-    
-  
 }

@@ -8,17 +8,17 @@ using CarbonBlockchain.Services.WebSocketHosted.Dtos;
 
 namespace CarbonBlockchain.Services.WebSocketHosted;
 
-public class WebSocketHostedClientService(IConfiguration configuration, IServiceProvider serviceProvider) : BackgroundService, IWebSocketHostedClientService
+public class WebSocketHostedClientService(IConfiguration configuration, IServiceProvider serviceProvider)
+    : BackgroundService, IWebSocketHostedClientService
 {
     private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(3);
     private readonly string? _webSocketConnectionUrl = configuration.GetConnectionString("WebSocketConnection");
-    private readonly Channel<object> _messageQueue = Channel.CreateUnbounded<object>();
+    private readonly Channel<WebSocketMessageDto> _messageQueue = Channel.CreateUnbounded<WebSocketMessageDto>();
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-
             if (string.IsNullOrEmpty(_webSocketConnectionUrl))
                 throw new ArgumentNullException("Error to start connection. Base URL not configured.");
 
@@ -37,7 +37,8 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in connection: {ex.Message}. Attempting to reconnect in {_reconnectInterval.TotalSeconds} seconds...");
+                Console.WriteLine(
+                    $"Error in connection: {ex.Message}. Attempting to reconnect in {_reconnectInterval.TotalSeconds} seconds...");
             }
 
             await Task.Delay(_reconnectInterval, cancellationToken);
@@ -67,7 +68,8 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
     {
         while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
         {
-            var heartbeatDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "Heartbeat");
+            var heartbeatDto =
+                new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "Heartbeat");
 
             await SendMessageAsync(webSocket, heartbeatDto);
             await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
@@ -80,7 +82,15 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
 
         while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
         {
-            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+            using var ms = new MemoryStream();
+            WebSocketReceiveResult result;
+
+            do
+            {
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                ms.Write(buffer, 0, result.Count);
+            }
+            while (!result.EndOfMessage);
 
             if (result.MessageType == WebSocketMessageType.Close)
             {
@@ -88,13 +98,15 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             }
             else if (result.MessageType == WebSocketMessageType.Text)
             {
-                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                ms.Seek(0, SeekOrigin.Begin);
+                var message = Encoding.UTF8.GetString(ms.ToArray());
                 await HandleReceivedMessageAsync(webSocket, message, OnMessage);
             }
         }
     }
 
-    private async Task SendMessageAsync(WebSocket webSocket, object? message)
+
+    private async Task SendMessageAsync(WebSocket webSocket, WebSocketMessageDto? message)
     {
         try
         {
@@ -107,7 +119,8 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             var json = JsonSerializer.Serialize(message, options);
             var buffer = Encoding.UTF8.GetBytes(json);
 
-            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true,
+                CancellationToken.None);
         }
         catch (Exception ex)
         {
@@ -116,17 +129,15 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
     }
 
 
-    public async Task SendMessageAsync(object message)
+    public async Task SendMessageAsync(WebSocketMessageDto message)
     {
         await _messageQueue.Writer.WriteAsync(message);
     }
 
-    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<string?, Task> onMessage)
+    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<object?, Task> onMessage)
     {
         try
         {
-            WebSocketMessageDto? responseDto = null;
-
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -137,97 +148,50 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
 
             if (jsonMessage.StatusCode == 200 && jsonMessage.Message as string == "Ack")
             {
-                Console.WriteLine("Heartbeat received by the server.");
+                Console.WriteLine("Ack returned by the server.");
             }
 
-            if (jsonMessage == null || jsonMessage.Message == null)
+            if (jsonMessage.StatusCode == 400)
             {
-                responseDto = new WebSocketMessageDto(
-                    400,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Message cannot be empty.");
+                Console.WriteLine("BadRequest returned by the server.");
             }
 
             if (jsonMessage != null && jsonMessage.StatusCode == 200 && jsonMessage.Message != null)
             {
-                responseDto = new WebSocketMessageDto(
-                    200,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Message received successfully!");
-
-                var data = JsonSerializer.Serialize(jsonMessage.Message);
-
-                await onMessage(data);
+                await onMessage(jsonMessage.Message);
             }
-
-            await SendMessageAsync(webSocket, responseDto);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
-
         }
     }
 
-    private async Task OnMessage(string? raw)
+    private async Task OnMessage(object? message)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(raw))
+            if (message == null)
             {
-                Console.WriteLine("Message is Empty.");
-                return;
+                throw new Exception("Message is Empty.");
             }
+            
+            var jsonMessage = JsonSerializer.Serialize(message);
+            var jsonObj = JsonSerializer.Deserialize<List<CarbonCreditCertifierDto>>(jsonMessage);
 
-            object? jsonObj = TryDeserialize(raw);
-
-            var provider = serviceProvider.CreateScope().ServiceProvider;
-
-            switch (jsonObj)
+            if (jsonObj != null)
             {
-                case List<CarbonCreditCertifierDto> dto:
-                    var carbonCreditHandlerService = provider.GetService<ICarbonCreditHandlerService>();
-                    await carbonCreditHandlerService.HandleCarbonCreditsAsync(dto);
-                    break;
-                default:
-                    Console.WriteLine("Unknown message type.");
-                    break;
+                var carbonCreditHandlerService = serviceProvider
+                    .CreateScope()
+                    .ServiceProvider
+                    .GetService<ICarbonCreditHandlerService>();
+                
+                await carbonCreditHandlerService.HandleCarbonCreditsAsync(jsonObj);
             }
         }
         catch (Exception ex)
         {
-
             Console.WriteLine($"Error to read web socket message data: {ex.Message}");
         }
-    }
-
-    private object? TryDeserialize(string raw)
-    {
-        var knownTypes = new List<Type>
-        {
-            typeof(List<CarbonCreditCertifierDto>),
-        };
-
-        foreach (var type in knownTypes)
-        {
-            try
-            {
-                var serializerOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    IncludeFields = true
-                };
-
-                var obj = JsonSerializer.Deserialize(raw, type, serializerOptions);
-
-                if (obj != null) return obj;
-            }
-            catch
-            {
-                continue;
-            }
-        }
-
-        return null;
     }
 }

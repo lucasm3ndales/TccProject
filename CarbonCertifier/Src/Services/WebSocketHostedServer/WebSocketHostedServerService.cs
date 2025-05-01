@@ -14,7 +14,7 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
 
     protected override Task ExecuteAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public async Task ConnectAsync(WebSocket webSocket, object? message, Func<string?, Task> onMessage)
+    public async Task ConnectAsync(WebSocket webSocket, WebSocketMessageDto? message, Func<object?, Task> onMessage)
     {
         var clientId = Guid.NewGuid();
 
@@ -91,7 +91,25 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
         }
     }
 
-    private async Task SendMessageAsync(WebSocket webSocket, object? message)
+    public async Task SendWebSocketMessageAsync(object message)
+    {
+        try
+        {
+            var webSocketMessageDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), message);
+            
+           for (var i = 0; i < _clients.Count; i++)
+           {
+               var websocket = _clients.ElementAt(i).Value;
+               await SendMessageAsync(websocket, webSocketMessageDto);
+           }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error to send message: {ex.Message}");
+        }
+    }
+
+    private async Task SendMessageAsync(WebSocket webSocket, WebSocketMessageDto? message)
     {
         try
         {
@@ -111,7 +129,7 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
         }
     }
 
-    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<string?, Task> onMessage)
+    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<object?, Task> onMessage)
     {
         try
         {
@@ -148,16 +166,8 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message received successfully!");
-
-                var serializerOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    IncludeFields = true
-                };
-
-                var data = JsonSerializer.Serialize(jsonMessage.Message, serializerOptions);
-
-                await onMessage(data);
+                
+                await onMessage(jsonMessage.Message);
             }
 
             await SendMessageAsync(webSocket, responseDto);

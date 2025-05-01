@@ -2,6 +2,7 @@
 using CarbonCertifier.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarbonCertifier.Migrations
 {
     [DbContext(typeof(CarbonCertifierDbContext))]
-    partial class CarbonCertifierDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250501020559_V1")]
+    partial class V1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,9 +79,6 @@ namespace CarbonCertifier.Migrations
                     b.Property<long>("CarbonProjectId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("CreatedAt")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("CreditCode")
                         .IsRequired()
                         .HasColumnType("text");
@@ -96,9 +96,6 @@ namespace CarbonCertifier.Migrations
 
                     b.Property<double>("TonCO2Quantity")
                         .HasColumnType("double precision");
-
-                    b.Property<long>("UpdatedAt")
-                        .HasColumnType("bigint");
 
                     b.Property<int>("VintageYear")
                         .HasColumnType("integer");

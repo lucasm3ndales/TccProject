@@ -21,8 +21,9 @@ builder.Services.AddDbContext<CarbonBlockchainDbContext>(options =>
 builder.Services.AddScoped<ICarbonCreditHandlerService, CarbonCreditHandlerService>();
 
 builder.Services.AddSingleton<IWebSocketHostedClientService, WebSocketHostedClientService>();
-builder.Services.AddSingleton<IBesuClientService, BesuClientService>();
+builder.Services.AddSingleton<IBesuHostedClientService, BesuHostedClientService>();
 
+builder.Services.AddHostedService<BesuHostedClientService>();
 builder.Services.AddHostedService<WebSocketHostedClientService>();
 
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5307));

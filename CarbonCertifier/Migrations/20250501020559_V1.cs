@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -18,24 +17,14 @@ namespace CarbonCertifier.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ProjectCode = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProjectCode = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Location = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<long>(type: "bigint", nullable: false),
+                    UpdatedAt = table.Column<long>(type: "bigint", nullable: false),
                     Developer = table.Column<string>(type: "text", nullable: false),
-                    Methodology = table.Column<string>(type: "text", nullable: false),
-                    EstimateEmissionReductions = table.Column<double>(type: "double precision", nullable: true),
-                    EmissionReductions = table.Column<double>(type: "double precision", nullable: true),
-                    CertificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CertificationExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CertificationKey = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,15 +37,12 @@ namespace CarbonCertifier.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CreditCode = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreditCode = table.Column<string>(type: "text", nullable: false),
                     VintageYear = table.Column<int>(type: "integer", nullable: false),
                     TonCO2Quantity = table.Column<double>(type: "double precision", nullable: false),
-                    IsRetired = table.Column<bool>(type: "boolean", nullable: false),
-                    RetireAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    PricePerTon = table.Column<double>(type: "double precision", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     Owner = table.Column<string>(type: "text", nullable: false),
+                    OwnerDocument = table.Column<string>(type: "text", nullable: false),
                     CarbonProjectId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>

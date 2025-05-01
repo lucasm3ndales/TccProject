@@ -1,6 +1,7 @@
 ﻿using CarbonCertifier.Entities.CreditCarbon.Dtos;
 using CarbonCertifier.Services.CarbonCredit;
 using CarbonCertifier.Services.WebSocketHosted;
+using CarbonCertifier.Services.WebSocketHosted.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarbonCertifier.Controllers.CreditCarbon;
@@ -43,9 +44,14 @@ public class CreditCarbonController(ICarbonCreditService carbonCreditService, IW
         
         var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
+        var webSocketMessageDto = new WebSocketMessageDto(
+            200, 
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds(), 
+            await carbonCreditService.GetAllAsync());
+        
         await webSocketHostedService.ConnectAsync(
             webSocket, 
-            await carbonCreditService.GetAllAsync(), 
+            webSocketMessageDto, 
             carbonCreditService.HandleWebSocketMessageUpdateAsync);
     }
 }

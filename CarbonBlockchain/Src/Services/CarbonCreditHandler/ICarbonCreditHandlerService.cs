@@ -4,5 +4,5 @@ namespace CarbonBlockchain.Services.CarbonCreditHandler;
 
 public interface ICarbonCreditHandlerService
 {
-    Task HandleCarbonCreditsAsync(List<CarbonCreditCertifierDto> dto);
+    Task HandleCertifiedCarbonCreditsAsync(List<CarbonCreditCertifierDto> dtos);
 }

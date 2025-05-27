@@ -1,6 +1,10 @@
-﻿namespace CarbonBlockchain.Services.BesuClient;
+﻿using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
 
-public class IBesuClientService
+namespace CarbonBlockchain.Services.BesuClient;
+
+public interface IBesuClientService
 {
-    
+    Task<bool> TokenizeCarbonCreditAsync(CarbonCreditTokenDto dto);
+
+    Task GetCarbonCreditTokensAsync(List<string> creditCodes);
 }

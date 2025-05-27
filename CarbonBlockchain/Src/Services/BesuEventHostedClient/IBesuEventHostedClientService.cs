@@ -1,6 +1,6 @@
 namespace CarbonBlockchain.Services.BesuClient;
 
-public interface IBesuHostedClientService
+public interface IBesuEventHostedClientService
 {
 }
 

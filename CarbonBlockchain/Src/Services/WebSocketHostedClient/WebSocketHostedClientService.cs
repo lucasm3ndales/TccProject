@@ -186,7 +186,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
                     .ServiceProvider
                     .GetService<ICarbonCreditHandlerService>();
                 
-                await carbonCreditHandlerService.HandleCarbonCreditsAsync(jsonObj);
+                await carbonCreditHandlerService.HandleCertifiedCarbonCreditsAsync(jsonObj);
             }
         }
         catch (Exception ex)

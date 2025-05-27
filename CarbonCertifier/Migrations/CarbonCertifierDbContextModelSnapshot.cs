@@ -83,11 +83,11 @@ namespace CarbonCertifier.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Owner")
+                    b.Property<string>("OwnerDocument")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("OwnerDocument")
+                    b.Property<string>("OwnerName")
                         .IsRequired()
                         .HasColumnType("text");
 

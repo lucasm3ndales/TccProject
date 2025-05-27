@@ -1,11 +1,9 @@
-using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
 using Nethereum.JsonRpc.WebSocketStreamingClient;
 using Nethereum.RPC.Reactive.Eth.Subscriptions;
-using Nethereum.Web3;
 
 namespace CarbonBlockchain.Services.BesuClient;
 
-public class BesuHostedClientService : BackgroundService, IBesuHostedClientService
+public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedClientService
 {
     private readonly string _url;
     private StreamingWebSocketClient _client;
@@ -13,7 +11,7 @@ public class BesuHostedClientService : BackgroundService, IBesuHostedClientServi
     private readonly TimeSpan _reconnectDelay = TimeSpan.FromSeconds(5);
     private readonly TimeSpan _interval = TimeSpan.FromSeconds(10);
 
-    public BesuHostedClientService(IConfiguration configuration)
+    public BesuEventHostedClientService(IConfiguration configuration)
     {
         _url = configuration.GetConnectionString("BesuSocketConnection") ??
                throw new ArgumentNullException("BesuSocketConnection not found in appsettings");
@@ -69,7 +67,7 @@ public class BesuHostedClientService : BackgroundService, IBesuHostedClientServi
         _observableSubscription.GetSubscriptionDataResponsesAsObservable()
             .Subscribe(blockHeader =>
             {
-                Console.WriteLine($"New block received: {blockHeader.Number.Value}");
+                // Console.WriteLine($"New block received: {blockHeader.Number.Value}");
                 // Handle net listener here.
             });
 

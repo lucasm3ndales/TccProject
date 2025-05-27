@@ -30,7 +30,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
                     CreditCode = Guid.NewGuid().ToString(),
                     VintageYear = currentYear,
                     TonCO2Quantity = Math.Round(random.NextDouble() * (10 - 1) + 1, 2),
-                    Owner = carbonProject.Developer,
+                    OwnerName = carbonProject.Developer,
                     OwnerDocument = Guid.NewGuid().ToString(),
                     CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),

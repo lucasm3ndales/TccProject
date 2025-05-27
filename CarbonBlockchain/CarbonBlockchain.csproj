@@ -36,9 +36,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Src\Controllers\" />
-      <Folder Include="Src\Converters\" />
-      <Folder Include="Src\Entities\" />
+      <_ContentIncludedByDefault Remove="Src\HardHat\package-lock.json" />
+      <_ContentIncludedByDefault Remove="Src\HardHat\package.json" />
+      <_ContentIncludedByDefault Remove="Src\HardHat\tsconfig.json" />
     </ItemGroup>
 
 </Project>

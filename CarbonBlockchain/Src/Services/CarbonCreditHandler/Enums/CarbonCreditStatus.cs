@@ -2,7 +2,10 @@
 
 public enum CarbonCreditStatus
 {
-    AVAILABLE,
-    RETIRED,
-    TRANSFERED,
+    PENDING_ISSUANCE, 
+    ISSUED, 
+    AVAILABLE, 
+    TRANSFERRED, 
+    RETIRED, 
+    CANCELLED, 
 }

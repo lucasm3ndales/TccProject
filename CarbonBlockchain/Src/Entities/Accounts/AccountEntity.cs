@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CarbonBlockchain.Entities.Account;
+namespace CarbonBlockchain.Entities.Accounts;
 
 public class AccountEntity
 {

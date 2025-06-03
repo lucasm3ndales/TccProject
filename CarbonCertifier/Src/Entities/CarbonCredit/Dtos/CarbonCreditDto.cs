@@ -1,7 +1,6 @@
-﻿using CarbonCertifier.Entities.CarbonProject.Dtos;
-using CarbonCertifier.Entities.CreditCarbon.Enums;
+﻿using CarbonCertifier.Entities.CarbonCredit.Enums;
 
-namespace CarbonCertifier.Entities.CreditCarbon.Dtos;
+namespace CarbonCertifier.Entities.CarbonCredit.Dtos;
 
 public class CarbonCreditDto()
 {
@@ -13,5 +12,5 @@ public class CarbonCreditDto()
     public string OwnerDocument { get; set; }
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
-    public CarbonProjectSimpleDto CarbonProject { get; set; }
+    public string ProjectCode { get; set; }
 };

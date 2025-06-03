@@ -1,4 +1,4 @@
-﻿using CarbonBlockchain.Entities.Account;
+﻿using CarbonBlockchain.Entities.Accounts;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarbonBlockchain.Data;

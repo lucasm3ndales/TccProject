@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CarbonCertifier.Entities.CarbonCredit.Enums;
 using CarbonCertifier.Entities.CarbonProject;
-using CarbonCertifier.Entities.CreditCarbon.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarbonCertifier.Entities.CreditCarbon;
+namespace CarbonCertifier.Entities.CarbonCredit;
 
 [Index(nameof(CreditCode), IsUnique = true)]
 public class CarbonCreditEntity

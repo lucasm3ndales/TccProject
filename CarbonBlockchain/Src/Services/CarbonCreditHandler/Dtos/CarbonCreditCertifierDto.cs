@@ -1,5 +1,4 @@
 using CarbonBlockchain.Services.CarbonCreditHandler.Enums;
-using CarbonBlockchain.Src.Services.CarbonCreditHandler.Dtos;
 
 namespace CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
 
@@ -13,5 +12,5 @@ public class CarbonCreditCertifierDto
     public string OwnerDocument { get; set; }
     public long CreatedAt { get; set; }
     public long UpdatedAt { get; set; }
-    public CarbonProjectCertifierDto CarbonProject { get; set; }
+    public string ProjectCode { get; set; }
 }

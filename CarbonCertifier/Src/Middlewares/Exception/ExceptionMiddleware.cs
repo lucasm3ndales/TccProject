@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Text.Json;
-using CarbonCertifier.Middlewares.ExceptionMiddleware.Dtos;
+using CarbonCertifier.Middlewares.Exception.Dtos;
 
-namespace CarbonCertifier.Middlewares.ExceptionMiddleware;
+namespace CarbonCertifier.Middlewares.Exception;
 
 public class ExceptionMiddleware(RequestDelegate next)
 {
@@ -12,14 +12,14 @@ public class ExceptionMiddleware(RequestDelegate next)
         {
             await next(httpContext);
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             Console.WriteLine($"Exception catch: {ex.Message}");
             await HandleExceptionAsync(httpContext, ex);
         }
     }
 
-    private async Task HandleExceptionAsync(HttpContext httpContext, Exception ex)
+    private async Task HandleExceptionAsync(HttpContext httpContext, System.Exception ex)
     {
         var response = BuildHttpResponse(ex);
         
@@ -29,7 +29,7 @@ public class ExceptionMiddleware(RequestDelegate next)
         await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 
-    private ExceptionResponseDto BuildHttpResponse(Exception ex)
+    private ExceptionResponseDto BuildHttpResponse(System.Exception ex)
     {
         return ex switch
         {
@@ -41,7 +41,7 @@ public class ExceptionMiddleware(RequestDelegate next)
         };
     }
 
-    private string GetMessage(Exception ex, string message)
+    private string GetMessage(System.Exception ex, string message)
     {
         return string.IsNullOrEmpty(ex.Message) ? message : ex.Message;
     }

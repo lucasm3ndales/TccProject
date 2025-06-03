@@ -1,6 +1,6 @@
-﻿using CarbonCertifier.Entities.CreditCarbon.Enums;
+﻿using CarbonCertifier.Entities.CarbonCredit.Enums;
 
-namespace CarbonCertifier.Entities.CreditCarbon.Dtos;
+namespace CarbonCertifier.Entities.CarbonCredit.Dtos;
 
 public class CarbonCreditSimpleDto
 {

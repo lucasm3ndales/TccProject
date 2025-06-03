@@ -1,5 +1,5 @@
 ﻿
-namespace CarbonCertifier.Middlewares.ExceptionMiddleware.Dtos;
+namespace CarbonCertifier.Middlewares.Exception.Dtos;
 
 public class ExceptionResponseDto(int StatusCode, string Message)
 {

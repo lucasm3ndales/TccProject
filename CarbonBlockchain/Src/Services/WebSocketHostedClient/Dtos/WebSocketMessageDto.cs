@@ -1,5 +1,5 @@
 ﻿
-namespace CarbonBlockchain.Services.WebSocketHosted.Dtos;
+namespace CarbonBlockchain.Services.WebSocketHostedClient.Dtos;
 
 public class WebSocketMessageDto
 {

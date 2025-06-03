@@ -1,10 +1,10 @@
-﻿using CarbonCertifier.Entities.CreditCarbon.Dtos;
+﻿using CarbonCertifier.Entities.CarbonCredit.Dtos;
 using CarbonCertifier.Services.CarbonCredit;
-using CarbonCertifier.Services.WebSocketHosted;
-using CarbonCertifier.Services.WebSocketHosted.Dtos;
+using CarbonCertifier.Services.WebSocketHostedServer;
+using CarbonCertifier.Services.WebSocketHostedServer.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CarbonCertifier.Controllers.CreditCarbon;
+namespace CarbonCertifier.Controllers.CarbonCredits;
 
 [ApiController]
 [Route("v1/carbonCredits")]
@@ -53,5 +53,17 @@ public class CreditCarbonController(ICarbonCreditService carbonCreditService, IW
             webSocket, 
             webSocketMessageDto, 
             carbonCreditService.HandleWebSocketMessageUpdateAsync);
+    }
+
+    /// <summary>
+    /// Atualiza os créditos de carbono da api.
+    /// </summary>
+    [HttpPut]
+    public async Task<ActionResult<List<CarbonCreditSimpleDto>>> UpdateCarbonCreditsAsync(
+        [FromQuery] string ids,
+        [FromBody] List<CarbonCreditUpdateDto> dtos)
+    {
+        var response = await carbonCreditService.UpdateCarbonCreditsAsync(ids, dtos);
+        return Ok(response);
     }
 }

@@ -4,9 +4,9 @@ using System.Text.Json;
 using System.Threading.Channels;
 using CarbonBlockchain.Services.CarbonCreditHandler;
 using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
-using CarbonBlockchain.Services.WebSocketHosted.Dtos;
+using CarbonBlockchain.Services.WebSocketHostedClient.Dtos;
 
-namespace CarbonBlockchain.Services.WebSocketHosted;
+namespace CarbonBlockchain.Services.WebSocketHostedClient;
 
 public class WebSocketHostedClientService(IConfiguration configuration, IServiceProvider serviceProvider)
     : BackgroundService, IWebSocketHostedClientService

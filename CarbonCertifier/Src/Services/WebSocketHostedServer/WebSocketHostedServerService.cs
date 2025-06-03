@@ -1,9 +1,9 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using CarbonCertifier.Services.WebSocketHosted.Dtos;
+using CarbonCertifier.Services.WebSocketHostedServer.Dtos;
 
-namespace CarbonCertifier.Services.WebSocketHosted;
+namespace CarbonCertifier.Services.WebSocketHostedServer;
 
 public class WebSocketHostedServerService(IConfiguration configuration) : BackgroundService, IWebSocketHostedServerService
 {
@@ -14,7 +14,7 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
 
     protected override Task ExecuteAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public async Task ConnectAsync(WebSocket webSocket, WebSocketMessageDto? message, Func<object?, Task> onMessage)
+    public async Task ConnectAsync(WebSocket webSocket, WebSocketMessageDto? message, Func<object, Task> onMessage)
     {
         var clientId = Guid.NewGuid();
 

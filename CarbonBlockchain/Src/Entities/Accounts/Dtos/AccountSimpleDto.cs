@@ -1,4 +1,4 @@
-﻿namespace CarbonBlockchain.Entities.Account.Dtos;
+﻿namespace CarbonBlockchain.Entities.Accounts.Dtos;
 
 public class AccountSimpleDto
 {

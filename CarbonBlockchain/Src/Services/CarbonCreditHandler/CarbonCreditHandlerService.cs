@@ -1,10 +1,9 @@
 using System.Numerics;
 using CarbonBlockchain.Services.BesuClient;
-using CarbonBlockchain.Services.CarbonCreditHandler;
+using CarbonBlockchain.Services.BesuClient.Adapters;
 using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
-using Mapster;
 
-namespace CarbonBlockchain.Services;
+namespace CarbonBlockchain.Services.CarbonCreditHandler;
 
 public class CarbonCreditHandlerService(IBesuClientService besuClientService): ICarbonCreditHandlerService
 {
@@ -12,16 +11,18 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
     {
         try
         {
+            var tokenDtoList = new List<CarbonCreditTokenData>([]);
+            
             for (var i = 0; i < dtos.Count; i++)
             {
                 var carbonCredit = dtos.ElementAt(i);
-
-                var tokenDto = AdaptToTokenDto(carbonCredit);
-                
-                var response = await besuClientService.TokenizeCarbonCreditAsync(tokenDto);
-
-                if (!response) throw new Exception("Error to tokenize carbon credits.");
+                tokenDtoList.Add(AdaptToTokenDto(carbonCredit));
             }
+            
+            var response = await besuClientService.MintCarbonCreditsInBatchAsync(tokenDtoList);
+            
+            if(!response) 
+                throw new Exception("Error to tokenize carbon credits.");
             
             Console.WriteLine("Carbon credits tokenized successfully.");
         }
@@ -31,26 +32,19 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
         }
     }
 
-    private CarbonCreditTokenDto AdaptToTokenDto(CarbonCreditCertifierDto dto)
+    private CarbonCreditTokenData AdaptToTokenDto(CarbonCreditCertifierDto dto)
     {
-        return new CarbonCreditTokenDto
+        return new CarbonCreditTokenData
         {
             CreditCode = dto.CreditCode,
             VintageYear = dto.VintageYear,
-            TonCO2Quantity = dto.TonCO2Quantity,
-            Status = dto.Status.ToString(),
+            TonCO2Quantity = new BigInteger(dto.TonCO2Quantity * 1e18),
+            Status = dto.Status,
             OwnerName = dto.OwnerName,
             OwnerDocument = dto.OwnerDocument,
             CreatedAt = dto.CreatedAt,
             UpdatedAt = dto.UpdatedAt,
-            ProjectCode = dto.CarbonProject.ProjectCode,
-            ProjectName = dto.CarbonProject.Name,
-            ProjectLocation = dto.CarbonProject.Location,
-            ProjectDeveloper = dto.CarbonProject.Developer,
-            ProjectCreatedAt = dto.CarbonProject.CreatedAt,
-            ProjectUpdatedAt = dto.CarbonProject.UpdatedAt,
-            ProjectType = dto.CarbonProject.Type.ToString(),
-            ProjectStatus = dto.CarbonProject.Status.ToString()
+            ProjectCode = dto.ProjectCode,
         };
     }
 }

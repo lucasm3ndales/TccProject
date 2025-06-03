@@ -1,10 +1,13 @@
 ﻿using System.Numerics;
+using CarbonBlockchain.Services.CarbonCreditHandler.Enums;
 using Nethereum.ABI.FunctionEncoding.Attributes;
+using Nethereum.ABI.Model;
+using Nethereum.Contracts;
 
 namespace CarbonBlockchain.Services.BesuClient.Adapters;
 
 [FunctionOutput]
-public class CarbonCreditMetadata
+public class CarbonCreditTokenData: FunctionOutputDTO
 {
     [Parameter("string", "creditCode", 1)]
     public string CreditCode { get; set; }
@@ -16,7 +19,7 @@ public class CarbonCreditMetadata
     public BigInteger TonCO2Quantity { get; set; }
 
     [Parameter("string", "status", 4)]
-    public string Status { get; set; }
+    public CarbonCreditStatus Status { get; set; }
 
     [Parameter("string", "ownerName", 5)]
     public string OwnerName { get; set; }
@@ -32,25 +35,4 @@ public class CarbonCreditMetadata
 
     [Parameter("string", "projectCode", 9)]
     public string ProjectCode { get; set; }
-
-    [Parameter("string", "projectName", 10)]
-    public string ProjectName { get; set; }
-
-    [Parameter("string", "projectLocation", 11)]
-    public string ProjectLocation { get; set; }
-
-    [Parameter("string", "projectDeveloper", 12)]
-    public string ProjectDeveloper { get; set; }
-
-    [Parameter("uint256", "projectCreatedAt", 13)]
-    public BigInteger ProjectCreatedAt { get; set; }
-
-    [Parameter("uint256", "projectUpdatedAt", 14)]
-    public BigInteger ProjectUpdatedAt { get; set; }
-
-    [Parameter("string", "projectType", 15)]
-    public string ProjectType { get; set; }
-
-    [Parameter("string", "projectStatus", 16)]
-    public string ProjectStatus { get; set; }
 }

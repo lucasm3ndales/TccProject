@@ -1,4 +1,4 @@
-﻿using CarbonBlockchain.Entities.Account.Dtos;
+﻿using CarbonBlockchain.Entities.Accounts.Dtos;
 
 namespace CarbonBlockchain.Services.Account;
 

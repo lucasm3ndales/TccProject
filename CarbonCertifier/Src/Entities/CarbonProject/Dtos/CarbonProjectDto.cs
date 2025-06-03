@@ -1,5 +1,5 @@
-﻿using CarbonCertifier.Entities.CarbonProject.Enums;
-using CarbonCertifier.Entities.CreditCarbon.Dtos;
+﻿using CarbonCertifier.Entities.CarbonCredit.Dtos;
+using CarbonCertifier.Entities.CarbonProject.Enums;
 
 namespace CarbonCertifier.Entities.CarbonProject.Dtos;
 

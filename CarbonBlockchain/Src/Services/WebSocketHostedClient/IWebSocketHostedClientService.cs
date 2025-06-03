@@ -1,7 +1,6 @@
-﻿using System.Net.WebSockets;
-using CarbonBlockchain.Services.WebSocketHosted.Dtos;
+﻿using CarbonBlockchain.Services.WebSocketHostedClient.Dtos;
 
-namespace CarbonBlockchain.Services.WebSocketHosted;
+namespace CarbonBlockchain.Services.WebSocketHostedClient;
 
 public interface IWebSocketHostedClientService
 {

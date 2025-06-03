@@ -3,7 +3,7 @@ using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Services.CarbonProject;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CarbonCertifier.Controllers;
+namespace CarbonCertifier.Controllers.CarbonProject;
 
 [ApiController]
 [Route("v1/carbonProjects")]

@@ -1,6 +1,6 @@
 ﻿using CarbonBlockchain.Data;
-using CarbonBlockchain.Entities.Account;
-using CarbonBlockchain.Entities.Account.Dtos;
+using CarbonBlockchain.Entities.Accounts;
+using CarbonBlockchain.Entities.Accounts.Dtos;
 using Mapster;
 
 namespace CarbonBlockchain.Services.Account;

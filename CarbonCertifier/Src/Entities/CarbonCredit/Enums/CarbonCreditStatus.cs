@@ -1,4 +1,4 @@
-﻿namespace CarbonCertifier.Entities.CreditCarbon.Enums;
+﻿namespace CarbonCertifier.Entities.CarbonCredit.Enums;
 
 public enum CarbonCreditStatus
 {

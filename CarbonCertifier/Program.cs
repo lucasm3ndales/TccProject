@@ -1,9 +1,10 @@
 using System.Net;
+using System.Text.Json.Serialization;
 using CarbonCertifier.Data;
-using CarbonCertifier.Middlewares.ExceptionMiddleware;
+using CarbonCertifier.Middlewares.Exception;
 using CarbonCertifier.Services.CarbonCredit;
 using CarbonCertifier.Services.CarbonProject;
-using CarbonCertifier.Services.WebSocketHosted;
+using CarbonCertifier.Services.WebSocketHostedServer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +27,10 @@ builder.Services.AddHostedService<WebSocketHostedServerService>();
 
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5207));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 var app = builder.Build();
 

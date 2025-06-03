@@ -1,5 +1,5 @@
-﻿using CarbonCertifier.Entities.CarbonProject;
-using CarbonCertifier.Entities.CreditCarbon.Dtos;
+﻿using CarbonCertifier.Entities.CarbonCredit.Dtos;
+using CarbonCertifier.Entities.CarbonProject;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CarbonCertifier.Services.CarbonCredit;
@@ -13,4 +13,6 @@ public interface ICarbonCreditService
     Task<List<CarbonCreditDto>> GetAllAsync();
     
     Task HandleWebSocketMessageUpdateAsync(object message);
+
+    Task<List<CarbonCreditSimpleDto>> UpdateCarbonCreditsAsync(string ids, List<CarbonCreditUpdateDto> dtos);
 }

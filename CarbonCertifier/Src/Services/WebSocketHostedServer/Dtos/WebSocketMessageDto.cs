@@ -1,6 +1,4 @@
-using System.Text.Json;
-
-namespace CarbonCertifier.Services.WebSocketHosted.Dtos;
+namespace CarbonCertifier.Services.WebSocketHostedServer.Dtos;
 public class WebSocketMessageDto
 {
     public int? StatusCode { get; set; }

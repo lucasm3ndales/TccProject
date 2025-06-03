@@ -1,7 +1,7 @@
 using Nethereum.JsonRpc.WebSocketStreamingClient;
 using Nethereum.RPC.Reactive.Eth.Subscriptions;
 
-namespace CarbonBlockchain.Services.BesuClient;
+namespace CarbonBlockchain.Services.BesuEventHostedClient;
 
 public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedClientService
 {

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CarbonCertifier.Entities.CarbonCredit;
 using CarbonCertifier.Entities.CarbonProject.Enums;
-using CarbonCertifier.Entities.CreditCarbon;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarbonCertifier.Entities.CarbonProject;

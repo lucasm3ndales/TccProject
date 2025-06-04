@@ -3,7 +3,7 @@ using Nethereum.Contracts;
 
 namespace CarbonBlockchain.Services.BesuClient.Adapters;
 
-[Function("batchMintCarbonCredits", "void")]
+[Function("batchMintCarbonCredits", typeof(FunctionResponseData))]
 public class BatchMintCarbonCreditsFunction: FunctionMessage
 {
     [Parameter("address", "to", 1)]

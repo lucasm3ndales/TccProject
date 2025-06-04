@@ -35,7 +35,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
                     CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     CarbonProject = carbonProject,
-                    Status = CarbonCreditStatus.AVAILABLE
+                    Status = CarbonCreditStatus.ISSUED
                 };
 
                 carbonCredits.Add(credit);
@@ -172,11 +172,12 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
         }
     }
 
-    //TODO: Implementar atualização vinda da blockchain de carbon credits via websocket
     public async Task HandleWebSocketMessageUpdateAsync(object message)
     {
         try
         {
+            Console.WriteLine("Updates received from blockchain.");
+            
             var carbonCredits = (List<CarbonCreditDto>) message;
             if (carbonCredits is { Count: > 0 })
             {

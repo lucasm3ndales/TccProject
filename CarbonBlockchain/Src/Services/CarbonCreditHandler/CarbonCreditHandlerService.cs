@@ -11,6 +11,7 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
     {
         try
         {
+            Console.WriteLine("Tokenization process start.");
             var tokenDtoList = new List<CarbonCreditTokenData>([]);
             
             for (var i = 0; i < dtos.Count; i++)
@@ -39,7 +40,7 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
             CreditCode = dto.CreditCode,
             VintageYear = dto.VintageYear,
             TonCO2Quantity = new BigInteger(dto.TonCO2Quantity * 1e18),
-            Status = dto.Status,
+            Status = (byte) dto.Status,
             OwnerName = dto.OwnerName,
             OwnerDocument = dto.OwnerDocument,
             CreatedAt = dto.CreatedAt,

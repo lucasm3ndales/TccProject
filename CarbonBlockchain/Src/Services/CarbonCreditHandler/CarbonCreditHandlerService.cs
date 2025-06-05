@@ -40,7 +40,7 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
             CreditCode = dto.CreditCode,
             VintageYear = dto.VintageYear,
             TonCO2Quantity = new BigInteger(dto.TonCO2Quantity * 1e18),
-            Status = (byte) dto.Status,
+            Status = dto.Status.ToString(),
             OwnerName = dto.OwnerName,
             OwnerDocument = dto.OwnerDocument,
             CreatedAt = dto.CreatedAt,

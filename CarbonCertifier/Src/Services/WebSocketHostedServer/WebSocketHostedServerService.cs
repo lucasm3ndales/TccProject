@@ -144,7 +144,7 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
 
-            if (jsonMessage == null || string.IsNullOrWhiteSpace(jsonMessage.Message as string))
+            if (jsonMessage == null || string.IsNullOrEmpty(jsonMessage.Message as string))
             {
                 responseDto = new WebSocketMessageDto(
                     400,
@@ -161,7 +161,7 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
                     "Ack");
             }
             else
-            {
+            { 
                 responseDto = new WebSocketMessageDto(
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),

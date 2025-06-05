@@ -7,7 +7,7 @@ using Nethereum.Contracts;
 namespace CarbonBlockchain.Services.BesuClient.Adapters;
 
 [FunctionOutput]
-public class CarbonCreditTokenData: FunctionOutputDTO
+public class CarbonCreditTokenData: IFunctionOutputDTO
 {
     [Parameter("string", "creditCode", 1)]
     public string CreditCode { get; set; }
@@ -18,8 +18,8 @@ public class CarbonCreditTokenData: FunctionOutputDTO
     [Parameter("uint256", "tonCO2Quantity", 3)]
     public BigInteger TonCO2Quantity { get; set; }
 
-    [Parameter("uint8", "status", 4)]
-    public byte Status { get; set; }
+    [Parameter("string", "status", 4)]
+    public string Status { get; set; }
 
     [Parameter("string", "ownerName", 5)]
     public string OwnerName { get; set; }

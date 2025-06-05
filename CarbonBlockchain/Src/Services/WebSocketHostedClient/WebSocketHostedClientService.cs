@@ -72,7 +72,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
                 new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "Heartbeat");
 
             await SendMessageAsync(webSocket, heartbeatDto);
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
         }
     }
 
@@ -131,7 +131,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
 
     public async Task SendMessageAsync(WebSocketMessageDto message)
     {
-        await _messageQueue.Writer.WriteAsync(message);
+            await _messageQueue.Writer.WriteAsync(message);
     }
 
     private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<object?, Task> onMessage)

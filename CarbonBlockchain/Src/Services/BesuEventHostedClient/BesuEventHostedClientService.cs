@@ -87,7 +87,7 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
                         {
                             var scope = _serviceProvider.CreateScope();
                             var besuClientService = scope.ServiceProvider.GetRequiredKeyedService<IBesuClientService>(_configuration);
-                            await besuClientService.HandleCarbonCreditTokensUpdatesAsync(decoded.Event.CreditCodes);
+                            // await besuClientService.HandleCarbonCreditTokensUpdatesAsync(decoded.Event.CreditCodes);
                         }
                     }
                 }

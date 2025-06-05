@@ -3,7 +3,7 @@
 namespace CarbonBlockchain.Services.BesuClient.Adapters;
 
 [FunctionOutput]
-public class FunctionResponseData
+public class FunctionResponseData: IFunctionOutputDTO
 {
     [Parameter("bool", "", 1)]
     public bool Success { get; set; }

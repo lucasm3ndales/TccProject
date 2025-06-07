@@ -3,7 +3,7 @@ using Nethereum.Contracts;
 
 namespace CarbonBlockchain.Services.BesuClient.Adapters;
 
-[Function("batchAvailableCarbonCredits ", typeof(FunctionResponseData))]
+[Function("batchAvailableCarbonCredits ", typeof(ResponseOutputData))]
 
 public class BatchAvailableCarbonCreditsFunction: FunctionMessage
 {

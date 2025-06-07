@@ -14,7 +14,7 @@ public class BesuClientService: IBesuClientService
 {
     private readonly string _rpcBaseUrl;
     private readonly string _signerPrivateKey;
-    private readonly Contract _contract;
+    private readonly string _contractAddress;
     private readonly Web3 _web3;
     private readonly IWebSocketHostedClientService _webSocketHostedClientService;
 
@@ -24,73 +24,60 @@ public class BesuClientService: IBesuClientService
         _webSocketHostedClientService = webSocketHostedClientService;
         _rpcBaseUrl = configuration.GetConnectionString("BesuHttpConnection");
         _signerPrivateKey = configuration.GetSection("Besu").GetSection("SignerPrivateKey").Value;
+        _contractAddress = configuration.GetSection("Besu").GetSection("CarbonCreditTokenContractAddress").Value;
         var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
         _web3 = new Web3(account, _rpcBaseUrl);
-        var contractAddress =
-            configuration.GetSection("Besu").GetSection("CarbonCreditTokenContractAddress").Value;
-        var abiPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "Contracts", "CarbonCreditToken.json"));       
-        var contractAbi = File.ReadAllText(abiPath);
-        _contract = _web3.Eth.GetContract(contractAbi, contractAddress);
     }
 
-    public async Task<bool> MintCarbonCreditsInBatchAsync(List<CarbonCreditTokenData> dtos)
+    public async Task<bool> MintCarbonCreditsInBatchAsync(List<CarbonCreditTokenStructData> dtos)
+    {
+        if (dtos == null || dtos.Count == 0)
+            throw new ArgumentException("No carbon credits provided.");
+
+        var function = new BatchMintCarbonCreditsFunction()
+        {
+            To = _web3.TransactionManager.Account.Address,
+            Credits = dtos
+        };
+
+        var handler = _web3.Eth.GetContractTransactionHandler<BatchMintCarbonCreditsFunction>();
+
+        var receipt = await handler.SendRequestAndWaitForReceiptAsync(_contractAddress, function);
+
+        if (receipt.Status.Value == 1)
+        {
+            Console.WriteLine($"Transaction Hash: {receipt.TransactionHash}");
+            return true;
+        }
+
+        Console.WriteLine("Transaction failed or returned false.");
+        return false;
+    }
+
+    public async Task<CarbonCreditTokenOutData?> GetCarbonCreditTokenDataAsync(string creditCode)
     {
         try
         {
-            if (dtos == null || dtos.Count == 0)
+            var function = new GetCarbonCreditFunction()
             {
-                throw new ArgumentException("No carbon credits provided.");
-            }
-            
-            var function = _contract.GetFunction("batchMintCarbonCredits");
-            
-            var receipt = await function.SendTransactionAndWaitForReceiptAsync(
-                from: _web3.TransactionManager.Account.Address,
-                gas: null,
-                value: null,
-                functionInput: 
-                dtos.ToArray());
-            
-            if (receipt.Status.Value == 1)
-            {
-                Console.WriteLine($"Transaction Hash: {receipt.TransactionHash}");
-                return true;
-            }
+                CreditCode = creditCode
+            };
 
-            Console.WriteLine("Error to tokenize carbon credits: Transaction failed.");
-            return false;
+            var queryHandler = _web3.Eth.GetContractQueryHandler<GetCarbonCreditFunction>();
+
+            var result = await queryHandler.QueryDeserializingToObjectAsync<CarbonCreditTokenOutData>(
+                function,
+                _contractAddress);
+
+            return result;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error to tokenize carbon credits: {ex.Message}");
+            Console.WriteLine($"Error to get carbon credit: {ex.Message}");
             throw;
         }
     }
-
-    // public async Task<CarbonCreditTokenData?> GetCarbonCreditTokenDataAsync(string tokenId)
-    // {
-    //     try
-    //     {
-    //         var function = new GetCarbonCreditFunction()
-    //         {
-    //             CreditCode = tokenId,
-    //         };
-    //
-    //         var queryHandler = _web3.Eth.GetContractQueryHandler<GetCarbonCreditFunction>();
-    //
-    //         var result = await queryHandler.QueryDeserializingToObjectAsync<CarbonCreditTokenData>(
-    //             function,
-    //             _contractAddress);
-    //
-    //         return result;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error to get carbon credit: {ex.Message}");
-    //         throw;
-    //     }
-    // }
-    //
+    
     // public async Task<bool> TransferCarbonCreditTokensInBatchAsync(TransferCarbonCreditTokensDto dto)
     // {
     //     try

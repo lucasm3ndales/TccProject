@@ -39,6 +39,7 @@
       <_ContentIncludedByDefault Remove="Src\HardHat\package-lock.json" />
       <_ContentIncludedByDefault Remove="Src\HardHat\package.json" />
       <_ContentIncludedByDefault Remove="Src\HardHat\tsconfig.json" />
+      <_ContentIncludedByDefault Remove="Src\Contracts\CarbonCreditToken.json" />
     </ItemGroup>
 
 </Project>

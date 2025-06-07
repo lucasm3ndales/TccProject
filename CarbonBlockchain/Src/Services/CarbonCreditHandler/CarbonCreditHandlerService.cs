@@ -12,7 +12,7 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
         try
         {
             Console.WriteLine("Tokenization process start.");
-            var tokenDtoList = new List<CarbonCreditTokenData>([]);
+            var tokenDtoList = new List<CarbonCreditTokenStructData>([]);
             
             for (var i = 0; i < dtos.Count; i++)
             {
@@ -33,18 +33,18 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
         }
     }
 
-    private CarbonCreditTokenData AdaptToTokenDto(CarbonCreditCertifierDto dto)
+    private CarbonCreditTokenStructData AdaptToTokenDto(CarbonCreditCertifierDto dto)
     {
-        return new CarbonCreditTokenData
+        return new CarbonCreditTokenStructData()
         {
             CreditCode = dto.CreditCode,
-            VintageYear = dto.VintageYear,
+            VintageYear = new BigInteger(dto.VintageYear),
             TonCO2Quantity = new BigInteger(dto.TonCO2Quantity * 1e18),
             Status = dto.Status.ToString(),
             OwnerName = dto.OwnerName,
             OwnerDocument = dto.OwnerDocument,
-            CreatedAt = dto.CreatedAt,
-            UpdatedAt = dto.UpdatedAt,
+            CreatedAt = new BigInteger(dto.CreatedAt),
+            UpdatedAt = new BigInteger(dto.UpdatedAt),
             ProjectCode = dto.ProjectCode,
         };
     }

@@ -6,5 +6,5 @@ namespace CarbonBlockchain.Services.BesuClient.Adapters;
 public class CarbonCreditTokenDataList: IFunctionOutputDTO
 {
     [Parameter("tuple[]", "", 1)]
-    public List<CarbonCreditTokenData> CarbonCredits { get; set; }
+    public List<CarbonCreditTokenStructData> CarbonCredits { get; set; }
 }

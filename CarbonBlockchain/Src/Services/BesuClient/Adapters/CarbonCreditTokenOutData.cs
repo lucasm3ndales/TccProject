@@ -1,13 +1,10 @@
 ﻿using System.Numerics;
-using CarbonBlockchain.Services.CarbonCreditHandler.Enums;
 using Nethereum.ABI.FunctionEncoding.Attributes;
-using Nethereum.ABI.Model;
-using Nethereum.Contracts;
 
 namespace CarbonBlockchain.Services.BesuClient.Adapters;
 
 [FunctionOutput]
-public class CarbonCreditTokenData: IFunctionOutputDTO
+public class CarbonCreditTokenOutData: IFunctionOutputDTO
 {
     [Parameter("string", "creditCode", 1)]
     public string CreditCode { get; set; }
@@ -27,12 +24,12 @@ public class CarbonCreditTokenData: IFunctionOutputDTO
     [Parameter("string", "ownerDocument", 6)]
     public string OwnerDocument { get; set; }
 
-    [Parameter("uint256", "createdAt", 7)]
+    [Parameter("string", "projectCode", 7)]
+    public string ProjectCode { get; set; }
+
+    [Parameter("uint256", "createdAt", 8)]
     public BigInteger CreatedAt { get; set; }
 
-    [Parameter("uint256", "updatedAt", 8)]
+    [Parameter("uint256", "updatedAt", 9)]
     public BigInteger UpdatedAt { get; set; }
-
-    [Parameter("string", "projectCode", 9)]
-    public string ProjectCode { get; set; }
 }

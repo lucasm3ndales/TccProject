@@ -9,16 +9,16 @@ namespace CarbonBlockchain.Controllers.Besu;
 [Route("v1/besu/carbonCredits/token")]
 public class BesuController(IBesuClientService besuClientService): ControllerBase
 {
-    // /// <summary>
-    // /// Busca um token de credito de carbono pelo creditCode.
-    // /// </summary>
-    // [HttpGet("{id}")]
-    // public async Task<ActionResult<CarbonCreditTokenData>> GetCarbonCreditTokenDataAsync(string id)
-    // {
-    //     var response = await besuClientService.GetCarbonCreditTokenDataAsync(id);
-    //     return Ok(response);
-    // }
-    //
+    /// <summary>
+    /// Busca um token de credito de carbono pelo creditCode.
+    /// </summary>
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CarbonCreditTokenOutData>> GetCarbonCreditTokenDataAsync(string id)
+    {
+        var response = await besuClientService.GetCarbonCreditTokenDataAsync(id);
+        return Ok(response);
+    }
+    
     // /// <summary>
     // /// Transfere tokens de crédito de carbono de uma conta para outra.
     // /// </summary>

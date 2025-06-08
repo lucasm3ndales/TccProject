@@ -7,10 +7,10 @@ public interface IBesuClientService
 {
     Task<bool> MintCarbonCreditsInBatchAsync(List<CarbonCreditTokenStructData> dtos);
     Task<CarbonCreditTokenOutData?> GetCarbonCreditTokenDataAsync(string tokenId);
-    // Task<bool> TransferCarbonCreditTokensInBatchAsync(TransferCarbonCreditTokensDto dto);
-    // Task<bool> RetireCarbonCreditTokensInBatchAsync(List<string> creditCodes);
-    // Task<bool> CancelCarbonCreditTokensInBatchAsync(List<string> creditCodes);
-    // Task<bool> AvailableCarbonCreditTokensInBatchAsync(List<string> creditCodes);
-    // Task<List<CarbonCreditTokenData>> GetCarbonCreditsInBatchAsync(List<string> creditCodes);
+    Task<bool> TransferCarbonCreditTokensInBatchAsync(TransferCarbonCreditTokensDto dto);
+    Task<bool> RetireCarbonCreditTokensInBatchAsync(List<string> creditCodes);
+    Task<bool> CancelCarbonCreditTokensInBatchAsync(List<string> creditCodes);
+    Task<bool> AvailableCarbonCreditTokensInBatchAsync(List<string> creditCodes);
+    Task<CarbonCreditTokenListOutData> GetCarbonCreditsInBatchAsync(List<string> creditCodes);
     // Task HandleCarbonCreditTokensUpdatesAsync(List<string> creditCodes);
 }

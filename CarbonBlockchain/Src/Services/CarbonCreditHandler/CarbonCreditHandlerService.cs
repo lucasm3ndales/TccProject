@@ -35,16 +35,18 @@ public class CarbonCreditHandlerService(IBesuClientService besuClientService): I
 
     private CarbonCreditTokenStructData AdaptToTokenDto(CarbonCreditCertifierDto dto)
     {
+        
+        
         return new CarbonCreditTokenStructData()
         {
             CreditCode = dto.CreditCode,
-            VintageYear = new BigInteger(dto.VintageYear),
-            TonCO2Quantity = new BigInteger(dto.TonCO2Quantity * 1e18),
+            VintageYear = (uint)dto.VintageYear,
+            TonCO2Quantity = (uint)Math.Round(dto.TonCO2Quantity * 100),
             Status = dto.Status.ToString(),
             OwnerName = dto.OwnerName,
             OwnerDocument = dto.OwnerDocument,
-            CreatedAt = new BigInteger(dto.CreatedAt),
-            UpdatedAt = new BigInteger(dto.UpdatedAt),
+            CreatedAt = (uint)dto.CreatedAt,
+            UpdatedAt = (uint)dto.UpdatedAt,
             ProjectCode = dto.ProjectCode,
         };
     }

@@ -145,19 +145,24 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             };
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
+            
+            var messageStr = GetMessageAsString(jsonMessage?.Message);
 
-            if (jsonMessage.StatusCode == 200 && jsonMessage.Message as string == "Ack")
+            if (jsonMessage.StatusCode == 200 && !string.IsNullOrEmpty(messageStr) && messageStr == "Ack")
             {
                 Console.WriteLine("Ack returned by the server.");
+                return;
             }
 
             if (jsonMessage.StatusCode == 400)
             {
                 Console.WriteLine("BadRequest returned by the server.");
+                return;
             }
 
             if (jsonMessage != null && jsonMessage.StatusCode == 200 && jsonMessage.Message != null)
             {
+                Console.WriteLine("Message received.");
                 await onMessage(jsonMessage.Message);
             }
         }
@@ -165,6 +170,24 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
         {
             Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
         }
+    }
+    
+    private string? GetMessageAsString(object? message)
+    {
+        if (message is null)
+            return null;
+
+        if (message is string str)
+            return str;
+
+        if (message is JsonElement jsonElement)
+        {
+            if (jsonElement.ValueKind == JsonValueKind.String)
+                return jsonElement.GetString();
+
+        }
+
+        return null;
     }
 
     private async Task OnMessage(object? message)

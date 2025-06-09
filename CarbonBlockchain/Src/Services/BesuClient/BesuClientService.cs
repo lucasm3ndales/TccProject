@@ -217,7 +217,7 @@ public class BesuClientService: IBesuClientService
         }
     }
     
-    public async Task<CarbonCreditTokenListOutData> GetCarbonCreditsInBatchAsync(List<string> creditCodes)
+    public async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(List<string> creditCodes)
     {
         try
         {
@@ -234,8 +234,27 @@ public class BesuClientService: IBesuClientService
             var result = await queryHandler.QueryDeserializingToObjectAsync<CarbonCreditTokenListOutData>(
                 function,
                 _contractAddress);
+            
+            var tokens = new List<CarbonCreditTokenOutData>();
+
+            for (var i = 0; i < creditCodes.Count; i++)
+            {
+                var token = new CarbonCreditTokenOutData
+                {
+                    CreditCode = result.CreditCodes[i],
+                    VintageYear = result.VintageYears[i],
+                    TonCO2Quantity = result.TonCO2Quantities[i],
+                    Status = result.Statuses[i],
+                    OwnerName = result.OwnerNames[i],
+                    OwnerDocument = result.OwnerDocuments[i],
+                    CreatedAt = result.CreatedAts[i],
+                    UpdatedAt = result.UpdatedAts[i],
+                    ProjectCode = result.ProjectCodes[i],
+                };
+                tokens.Add(token);
+            }
     
-            return result;
+            return tokens;
         }
         catch (Exception ex)
         {
@@ -244,43 +263,43 @@ public class BesuClientService: IBesuClientService
         }
     }
     
-    // public async Task HandleCarbonCreditTokensUpdatesAsync(List<string> creditCodes)
-    // {
-    //     try
-    //     {
-    //         var tokens = await GetCarbonCreditsInBatchAsync(creditCodes);
-    //         var carbonCredits = new List<CarbonCreditCertifierDto>([]);
-    //         
-    //         for (var i = 0; i < tokens.Count; i++)
-    //         {
-    //             var token = tokens[i];
-    //             carbonCredits.Add(AdaptToCarbonCreditCertifierDto(token));
-    //         }
-    //         
-    //         var webSocketMessageDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), carbonCredits);
-    //         
-    //         _webSocketHostedClientService.SendMessageAsync(webSocketMessageDto);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error handle carbon credits tokens: {ex.Message}");
-    //         throw;
-    //     }
-    // }
-    //
-    // private CarbonCreditCertifierDto AdaptToCarbonCreditCertifierDto(CarbonCreditTokenData carbonCreditTokenData)
-    // {
-    //     return new ()
-    //     {
-    //         CreditCode = carbonCreditTokenData.CreditCode,
-    //         VintageYear = (int)carbonCreditTokenData.VintageYear,
-    //         TonCO2Quantity = (double)carbonCreditTokenData.TonCO2Quantity,
-    //         Status = Enum.Parse<CarbonCreditStatus>(carbonCreditTokenData.Status),
-    //         OwnerName = carbonCreditTokenData.OwnerName,
-    //         OwnerDocument = carbonCreditTokenData.OwnerDocument,
-    //         CreatedAt = (long)carbonCreditTokenData.CreatedAt,
-    //         UpdatedAt = (long)carbonCreditTokenData.UpdatedAt,
-    //         ProjectCode = carbonCreditTokenData.ProjectCode
-    //     };
-    // }
+    public async Task HandleCarbonCreditTokensUpdatesAsync(List<string> creditCodes)
+    {
+        try
+        {
+            var tokens = await GetCarbonCreditsInBatchAsync(creditCodes);
+            var carbonCredits = new List<CarbonCreditCertifierDto>([]);
+            
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                var token = tokens[i];
+                carbonCredits.Add(AdaptToCarbonCreditCertifierDto(token));
+            }
+            
+            var webSocketMessageDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), carbonCredits);
+            
+            _webSocketHostedClientService.SendMessageAsync(webSocketMessageDto);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error handle carbon credits tokens: {ex.Message}");
+            throw;
+        }
+    }
+    
+    private CarbonCreditCertifierDto AdaptToCarbonCreditCertifierDto(CarbonCreditTokenOutData token)
+    {
+        return new ()
+        {
+            CreditCode = token.CreditCode,
+            VintageYear = (int)token.VintageYear,
+            TonCO2Quantity = (double)token.TonCO2Quantity,
+            Status = Enum.Parse<CarbonCreditStatus>(token.Status),
+            OwnerName = token.OwnerName,
+            OwnerDocument = token.OwnerDocument,
+            CreatedAt = (long)token.CreatedAt,
+            UpdatedAt = (long)token.UpdatedAt,
+            ProjectCode = token.ProjectCode
+        };
+    }
 }

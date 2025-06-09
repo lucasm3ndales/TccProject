@@ -13,8 +13,8 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
     private StreamingWebSocketClient _client;
     private EthLogsObservableSubscription _logsSubscription;
     private readonly TimeSpan _reconnectDelay = TimeSpan.FromSeconds(5);
-    private readonly TimeSpan _interval = TimeSpan.FromSeconds(10);
-    private readonly string _carbonCreditTokenContractAddress;
+    private readonly TimeSpan _interval = TimeSpan.FromSeconds(5);
+    private readonly string _contractAddress;
     private readonly IServiceProvider _serviceProvider;
 
 
@@ -24,7 +24,7 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
         _configuration = configuration;
         _url = configuration.GetConnectionString("BesuSocketConnection") ??
                throw new ArgumentNullException("BesuSocketConnection not found in appsettings");
-        _carbonCreditTokenContractAddress =
+        _contractAddress =
             configuration.GetSection("Besu").GetSection("CarbonCreditTokenContractAddress").Value;
     }
 
@@ -43,6 +43,7 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
                     if (_client.WebSocketState != System.Net.WebSockets.WebSocketState.Open)
                     {
                         Console.WriteLine("WebSocket connection lost. Attempting to reconnect...");
+                        await StopAsync(); 
                         break;
                     }
 
@@ -69,7 +70,7 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
     {
         _logsSubscription = new EthLogsObservableSubscription(_client);
         
-        var filter = Event<CarbonCreditUpdatesEvent>.GetEventABI().CreateFilterInput(_carbonCreditTokenContractAddress);
+        var filter = Event<CarbonCreditUpdatesEvent>.GetEventABI().CreateFilterInput(_contractAddress);
 
         _logsSubscription.GetSubscriptionDataResponsesAsObservable()
             .Subscribe(async (log) =>
@@ -87,7 +88,7 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
                         {
                             var scope = _serviceProvider.CreateScope();
                             var besuClientService = scope.ServiceProvider.GetRequiredKeyedService<IBesuClientService>(_configuration);
-                            // await besuClientService.HandleCarbonCreditTokensUpdatesAsync(decoded.Event.CreditCodes);
+                            await besuClientService.HandleCarbonCreditTokensUpdatesAsync(decoded.Event.CreditCodes);
                         }
                     }
                 }
@@ -108,14 +109,27 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
 
     private async Task StopAsync()
     {
-        if (_logsSubscription != null)
+        try
         {
-            await _logsSubscription.UnsubscribeAsync();
+            if (_logsSubscription != null)
+            {
+                await _logsSubscription.UnsubscribeAsync();
+                _logsSubscription = null;
+            }
+
+            if (_client != null)
+            {
+                if (_client.WebSocketState == System.Net.WebSockets.WebSocketState.Open ||
+                    _client.WebSocketState == System.Net.WebSockets.WebSocketState.CloseReceived)
+                {
+                    await _client.StopAsync();
+                }
+                _client = null;
+            }
         }
-        
-        if (_client != null)
+        catch (Exception ex)
         {
-            await _client.StopAsync();
+            Console.WriteLine($"Error during StopAsync: {ex.Message}");
         }
     }
 }

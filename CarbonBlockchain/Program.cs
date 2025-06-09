@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json.Serialization;
 using CarbonBlockchain.Middlewares.Exception;
 using CarbonBlockchain.Services.BesuClient;
+using CarbonBlockchain.Services.BesuEventHostedClient;
 using CarbonBlockchain.Services.CarbonCreditHandler;
 using CarbonBlockchain.Services.WebSocketHostedClient;
 
@@ -18,9 +19,9 @@ builder.Services.AddScoped<ICarbonCreditHandlerService, CarbonCreditHandlerServi
 builder.Services.AddScoped<IBesuClientService, BesuClientService>();
 
 builder.Services.AddSingleton<IWebSocketHostedClientService, WebSocketHostedClientService>();
-// builder.Services.AddSingleton<IBesuEventHostedClientService, BesuEventHostedClientService>();
+builder.Services.AddSingleton<IBesuEventHostedClientService, BesuEventHostedClientService>();
 
-// builder.Services.AddHostedService<BesuEventHostedClientService>();
+builder.Services.AddHostedService<BesuEventHostedClientService>();
 builder.Services.AddHostedService<WebSocketHostedClientService>();
 
 builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Any, 5307));

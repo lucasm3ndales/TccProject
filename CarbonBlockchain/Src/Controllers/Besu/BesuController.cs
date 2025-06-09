@@ -19,43 +19,43 @@ public class BesuController(IBesuClientService besuClientService): ControllerBas
         return Ok(response);
     }
     
-    // /// <summary>
-    // /// Transfere tokens de crédito de carbono de uma conta para outra.
-    // /// </summary>
-    // [HttpPost("transfer")]
-    // public async Task<ActionResult<bool>> TransferCarbonCreditTokensInBatchAsync([FromBody] TransferCarbonCreditTokensDto dto)
-    // {
-    //     var response = await besuClientService.TransferCarbonCreditTokensInBatchAsync(dto);
-    //     return Ok(response);
-    // }
-    //
-    // /// <summary>
-    // /// Aposenta créditos de carbono.
-    // /// </summary>
-    // [HttpPost("retire")]
-    // public async Task<ActionResult<bool>> RetireCarbonCreditTokensInBatchAsync([FromBody] List<string> creditCodes)
-    // {
-    //     var response = await besuClientService.RetireCarbonCreditTokensInBatchAsync(creditCodes);
-    //     return Ok(response);
-    // }
-    //
-    // /// <summary>
-    // /// Cancela créditos de carbono.
-    // /// </summary>
-    // [HttpPost("cancel")]
-    // public async Task<ActionResult<bool>> CancelCarbonCreditTokensInBatchAsync([FromBody] List<string> creditCodes)
-    // {
-    //     var response = await besuClientService.CancelCarbonCreditTokensInBatchAsync(creditCodes);
-    //     return Ok(response);
-    // }
-    //
-    // /// <summary>
-    // /// Disponibiliza para venda créditos de carbono.
-    // /// </summary>
-    // [HttpPost("available")]
-    // public async Task<ActionResult<bool>> AvailableCarbonCreditTokensInBatchAsync([FromBody] List<string> creditCodes)
-    // {
-    //     var response = await besuClientService.AvailableCarbonCreditTokensInBatchAsync(creditCodes);
-    //     return Ok(response);
-    // }
+    /// <summary>
+    /// Transfere tokens de crédito de carbono de uma conta para outra.
+    /// </summary>
+    [HttpPost("transfer")]
+    public async Task<ActionResult<bool>> TransferCarbonCreditTokensInBatchAsync([FromBody] TransferCarbonCreditTokensDto dto)
+    {
+        var response = await besuClientService.TransferCarbonCreditTokensInBatchAsync(dto);
+        return Ok(response);
+    }
+    
+    /// <summary>
+    /// Aposenta créditos de carbono.
+    /// </summary>
+    [HttpPost("retire")]
+    public async Task<ActionResult<bool>> RetireCarbonCreditTokensInBatchAsync([FromBody] List<string> creditCodes)
+    {
+        var response = await besuClientService.RetireCarbonCreditTokensInBatchAsync(creditCodes);
+        return Ok(response);
+    }
+    
+    /// <summary>
+    /// Cancela créditos de carbono.
+    /// </summary>
+    [HttpPost("cancel")]
+    public async Task<ActionResult<bool>> CancelCarbonCreditTokensInBatchAsync([FromBody] List<string> creditCodes)
+    {
+        var response = await besuClientService.CancelCarbonCreditTokensInBatchAsync(creditCodes);
+        return Ok(response);
+    }
+    
+    /// <summary>
+    /// Disponibiliza para venda créditos de carbono.
+    /// </summary>
+    [HttpPost("available")]
+    public async Task<ActionResult<bool>> AvailableCarbonCreditTokensInBatchAsync([FromBody] List<string> creditCodes)
+    {
+        var response = await besuClientService.AvailableCarbonCreditTokensInBatchAsync(creditCodes);
+        return Ok(response);
+    }
 }

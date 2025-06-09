@@ -11,6 +11,5 @@ public interface IBesuClientService
     Task<bool> RetireCarbonCreditTokensInBatchAsync(List<string> creditCodes);
     Task<bool> CancelCarbonCreditTokensInBatchAsync(List<string> creditCodes);
     Task<bool> AvailableCarbonCreditTokensInBatchAsync(List<string> creditCodes);
-    Task<CarbonCreditTokenListOutData> GetCarbonCreditsInBatchAsync(List<string> creditCodes);
-    // Task HandleCarbonCreditTokensUpdatesAsync(List<string> creditCodes);
+    Task HandleCarbonCreditTokensUpdatesAsync(List<string> creditCodes);
 }

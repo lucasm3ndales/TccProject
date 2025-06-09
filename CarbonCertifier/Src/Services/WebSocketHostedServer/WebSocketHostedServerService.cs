@@ -139,35 +139,36 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
             {
                 PropertyNameCaseInsensitive = true,
                 IncludeFields = true
-
             };
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
 
-            if (jsonMessage == null || string.IsNullOrEmpty(jsonMessage.Message as string))
-            {
-                responseDto = new WebSocketMessageDto(
-                    400,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Message cannot be empty.");
-            }
-            else if (jsonMessage.Message as string == "Heartbeat")
-            {
-                Console.WriteLine($"Ack received.");
+            var messageStr = GetMessageAsString(jsonMessage?.Message);
 
+            if (!string.IsNullOrEmpty(messageStr) && messageStr == "Heartbeat")
+            {
+                Console.WriteLine($"Heartbeat received.");
                 responseDto = new WebSocketMessageDto(
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Ack");
             }
+            else if (string.IsNullOrEmpty(messageStr))
+            {
+                Console.WriteLine($"Message received null or empty.");
+                responseDto = new WebSocketMessageDto(
+                    400,
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    "Message cannot be empty.");
+            }
             else
-            { 
+            {
                 responseDto = new WebSocketMessageDto(
                     200,
                     DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                     "Message received successfully!");
-                
-                await onMessage(jsonMessage.Message);
+
+                await onMessage(jsonMessage?.Message);
             }
 
             await SendMessageAsync(webSocket, responseDto);
@@ -177,4 +178,23 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
             Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
         }
     }
+    
+    private string? GetMessageAsString(object? message)
+    {
+        if (message is null)
+            return null;
+
+        if (message is string str)
+            return str;
+
+        if (message is JsonElement jsonElement)
+        {
+            if (jsonElement.ValueKind == JsonValueKind.String)
+                return jsonElement.GetString();
+
+        }
+
+        return null;
+    }
+    
 }

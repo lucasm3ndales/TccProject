@@ -80,14 +80,14 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
                     var decoded = Event<CarbonCreditUpdatesEvent>.DecodeEvent(log);
                     if (decoded != null)
                     {
-                        Console.WriteLine($"Updates throwed from network. Called Function: {decoded.Event.Func} - Operator: {decoded.Event.Operator}");
+                        Console.WriteLine($"Updates from carbon network. Called Function: {decoded.Event.Func} - Operator: {decoded.Event.Operator}");
                         if (decoded.Event.TokenIds != null && 
                             decoded.Event.CreditCodes != null && 
                             decoded.Event.TokenIds.Count != 0 && 
                             decoded.Event.CreditCodes.Count != 0)
                         {
                             var scope = _serviceProvider.CreateScope();
-                            var besuClientService = scope.ServiceProvider.GetRequiredKeyedService<IBesuClientService>(_configuration);
+                            var besuClientService = scope.ServiceProvider.GetRequiredService<IBesuClientService>();
                             await besuClientService.HandleCarbonCreditTokensUpdatesAsync(decoded.Event.CreditCodes);
                         }
                     }

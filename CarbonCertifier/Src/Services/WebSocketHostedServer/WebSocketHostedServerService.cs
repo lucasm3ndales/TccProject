@@ -54,43 +54,11 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
         finally
         {
             _clients.Remove(clientId);
-            await HandleClientDisconnectionAsync(clientId);
+            Console.WriteLine($"Client {clientId} disconnected.");
         }
     }
 
-    private async Task HandleClientDisconnectionAsync(Guid clientId)
-    {
-        Console.WriteLine($"Client {clientId} disconnected. Attempting to reconnect...");
-
-        while (true)
-        {
-            try
-            {
-                var newSocket = new ClientWebSocket();
-
-                await newSocket.ConnectAsync(new Uri(_webSocketConnectionUrl!), CancellationToken.None);
-
-                Console.WriteLine($"Client {clientId} reconnected successfully.");
-
-                _clients[clientId] = newSocket;
-
-                var responseDto = new WebSocketMessageDto(
-                    200,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Reconnected successfully.");
-
-                await SendMessageAsync(newSocket, responseDto);
-
-                break;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error to reconnect to client {clientId}: {ex.Message}. Retrying in {_reconnectInterval.Seconds} seconds...");
-                await Task.Delay(_reconnectInterval);
-            }
-        }
-    }
-
+    
     public async Task SendWebSocketMessageAsync(object message)
     {
         try
@@ -140,7 +108,6 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
                 PropertyNameCaseInsensitive = true,
                 IncludeFields = true
             };
-
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
 
             var messageStr = GetMessageAsString(jsonMessage?.Message);

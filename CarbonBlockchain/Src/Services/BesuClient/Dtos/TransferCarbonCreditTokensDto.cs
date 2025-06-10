@@ -3,6 +3,7 @@
 public class TransferCarbonCreditTokensDto
 {
     public string From { get; set; }
+    public string PrivateKey { get; set; }
     public string To { get; set; }
     public List<string> CreditCodes { get; set; }
 }

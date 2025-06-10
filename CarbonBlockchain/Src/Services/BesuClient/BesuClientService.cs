@@ -1,4 +1,6 @@
-﻿using CarbonBlockchain.Services.BesuClient.Adapters;
+﻿using System.Numerics;
+using System.Text.Json;
+using CarbonBlockchain.Services.BesuClient.Adapters;
 using CarbonBlockchain.Services.BesuClient.Dtos;
 using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
 using CarbonBlockchain.Services.CarbonCreditHandler.Enums;
@@ -10,12 +12,11 @@ using Nethereum.Web3;
 
 namespace CarbonBlockchain.Services.BesuClient;
 
-public class BesuClientService: IBesuClientService
+public class BesuClientService : IBesuClientService
 {
     private readonly string _rpcBaseUrl;
     private readonly string _signerPrivateKey;
     private readonly string _contractAddress;
-    private readonly Web3 _web3;
     private readonly IWebSocketHostedClientService _webSocketHostedClientService;
 
 
@@ -25,22 +26,22 @@ public class BesuClientService: IBesuClientService
         _rpcBaseUrl = configuration.GetConnectionString("BesuHttpConnection");
         _signerPrivateKey = configuration.GetSection("Besu").GetSection("SignerPrivateKey").Value;
         _contractAddress = configuration.GetSection("Besu").GetSection("CarbonCreditTokenContractAddress").Value;
-        var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
-        _web3 = new Web3(account, _rpcBaseUrl);
     }
 
     public async Task<bool> MintCarbonCreditsInBatchAsync(List<CarbonCreditTokenStructData> dtos)
     {
         if (dtos == null || dtos.Count == 0)
             throw new ArgumentException("No carbon credits provided.");
-
+        
+        var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
+        var web3 = new Web3(account, _rpcBaseUrl);
         var function = new BatchMintCarbonCreditsFunction()
         {
-            To = _web3.TransactionManager.Account.Address,
+            To = web3.TransactionManager.Account.Address,
             Credits = dtos
         };
 
-        var handler = _web3.Eth.GetContractTransactionHandler<BatchMintCarbonCreditsFunction>();
+        var handler = web3.Eth.GetContractTransactionHandler<BatchMintCarbonCreditsFunction>();
 
         var receipt = await handler.SendRequestAndWaitForReceiptAsync(_contractAddress, function);
 
@@ -62,8 +63,11 @@ public class BesuClientService: IBesuClientService
             {
                 CreditCode = creditCode
             };
+            
+            var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
 
-            var handler = _web3.Eth.GetContractQueryHandler<GetCarbonCreditFunction>();
+            var handler = web3.Eth.GetContractQueryHandler<GetCarbonCreditFunction>();
 
             var result = await handler.QueryDeserializingToObjectAsync<CarbonCreditTokenOutData>(
                 function,
@@ -77,39 +81,42 @@ public class BesuClientService: IBesuClientService
             throw;
         }
     }
-    
+
     public async Task<bool> TransferCarbonCreditTokensInBatchAsync(TransferCarbonCreditTokensDto dto)
     {
         try
         {
             var addressUtil = new AddressUtil();
-    
+
             if (!addressUtil.IsValidEthereumAddressHexFormat(dto.To))
                 throw new ArgumentException($"Invalid 'to' address: {dto.To}");
-    
+
             if (!addressUtil.IsValidEthereumAddressHexFormat(dto.From))
                 throw new ArgumentException($"Invalid 'from' address: {dto.From}");
-    
+
             if (dto.CreditCodes == null || dto.CreditCodes.Count == 0)
                 throw new ArgumentException("No carbon credit tokens provided.");
-    
+
             var function = new BatchTransferCarbonCreditsFunction()
             {
                 From = dto.From,
                 To = dto.To,
                 CreditCodes = dto.CreditCodes
             };
-    
-            var handler = _web3.Eth.GetContractTransactionHandler<BatchTransferCarbonCreditsFunction>();
-    
+            
+            var account = new Nethereum.Web3.Accounts.Account(dto.PrivateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+
+            var handler = web3.Eth.GetContractTransactionHandler<BatchTransferCarbonCreditsFunction>();
+
             var receipt = await handler.SendRequestAndWaitForReceiptAsync(_contractAddress, function);
-    
+
             if (receipt.Status.Value == 1)
             {
                 Console.WriteLine($"Transaction successful. Hash: {receipt.TransactionHash}");
                 return true;
             }
-    
+
             Console.WriteLine($"Transaction failed. Hash: {receipt.TransactionHash}");
             return false;
         }
@@ -119,30 +126,33 @@ public class BesuClientService: IBesuClientService
             throw;
         }
     }
-    
-    
+
+
     public async Task<bool> RetireCarbonCreditTokensInBatchAsync(List<string> creditCodes)
     {
         try
         {
             if (creditCodes == null || creditCodes.Count == 0)
                 throw new ArgumentException("No carbon credit tokens provided.");
-    
+
             var function = new BatchRetireCarbonCreditsFunction()
             {
                 CreditCodes = creditCodes
             };
-    
-            var handler = _web3.Eth.GetContractTransactionHandler<BatchRetireCarbonCreditsFunction>();
-    
+            
+            var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+
+            var handler = web3.Eth.GetContractTransactionHandler<BatchRetireCarbonCreditsFunction>();
+
             var receipt = await handler.SendRequestAndWaitForReceiptAsync(_contractAddress, function);
-    
+
             if (receipt.Status.Value == 1)
             {
                 Console.WriteLine($"Retire transaction successful. Hash: {receipt.TransactionHash}");
                 return true;
             }
-    
+
             Console.WriteLine($"Retire transaction failed. Hash: {receipt.TransactionHash}");
             return false;
         }
@@ -152,29 +162,32 @@ public class BesuClientService: IBesuClientService
             throw;
         }
     }
-    
+
     public async Task<bool> CancelCarbonCreditTokensInBatchAsync(List<string> creditCodes)
     {
         try
         {
             if (creditCodes == null || creditCodes.Count == 0)
                 throw new ArgumentException("No carbon credit tokens provided.");
-    
+
             var function = new BatchCancelCarbonCreditsFunction()
             {
                 CreditCodes = creditCodes
             };
-    
-            var handler = _web3.Eth.GetContractTransactionHandler<BatchCancelCarbonCreditsFunction>();
-    
+            
+            var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+
+            var handler = web3.Eth.GetContractTransactionHandler<BatchCancelCarbonCreditsFunction>();
+
             var receipt = await handler.SendRequestAndWaitForReceiptAsync(_contractAddress, function);
-    
+
             if (receipt.Status.Value == 1)
             {
                 Console.WriteLine($"Cancel transaction successful. Hash: {receipt.TransactionHash}");
                 return true;
             }
-    
+
             Console.WriteLine($"Cancel transaction failed. Hash: {receipt.TransactionHash}");
             return false;
         }
@@ -184,29 +197,32 @@ public class BesuClientService: IBesuClientService
             throw;
         }
     }
-    
+
     public async Task<bool> AvailableCarbonCreditTokensInBatchAsync(List<string> creditCodes)
     {
         try
         {
             if (creditCodes == null || creditCodes.Count == 0)
                 throw new ArgumentException("No carbon credit tokens provided.");
-    
+
             var function = new BatchAvailableCarbonCreditsFunction()
             {
                 CreditCodes = creditCodes
             };
-    
-            var handler = _web3.Eth.GetContractTransactionHandler<BatchAvailableCarbonCreditsFunction>();
-    
+
+            var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+            
+            var handler = web3.Eth.GetContractTransactionHandler<BatchAvailableCarbonCreditsFunction>();
+
             var receipt = await handler.SendRequestAndWaitForReceiptAsync(_contractAddress, function);
-    
+
             if (receipt.Status.Value == 1)
             {
                 Console.WriteLine($"Available transaction successful. Hash: {receipt.TransactionHash}");
                 return true;
             }
-    
+
             Console.WriteLine($"Available transaction failed. Hash: {receipt.TransactionHash}");
             return false;
         }
@@ -216,8 +232,36 @@ public class BesuClientService: IBesuClientService
             throw;
         }
     }
-    
-    public async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(List<string> creditCodes)
+
+    public async Task<BigInteger> GetBalanceOfAsync(string accountAddress, string privateKey, string creditCode)
+    {
+        try
+        {
+            var balanceOfFunction = new BalanceOfFunction()
+            {
+                Account = accountAddress,
+                CreditCode = creditCode
+            };
+            
+            var account = new Nethereum.Web3.Accounts.Account(privateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+
+            var handler = web3.Eth.GetContractQueryHandler<BalanceOfFunction>();
+
+            var balance = await handler.QueryAsync<BigInteger>(_contractAddress, balanceOfFunction);
+
+            Console.WriteLine($"Balance: {balance}");
+
+            return balance;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error to get balance of account {accountAddress}");
+            throw;
+        }
+    }
+
+private async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(List<string> creditCodes)
     {
         try
         {
@@ -229,7 +273,10 @@ public class BesuClientService: IBesuClientService
                 CreditCodes = creditCodes
             };
     
-            var queryHandler = _web3.Eth.GetContractQueryHandler<BatchGetCarbonCreditsFunction>();
+            var account = new Nethereum.Web3.Accounts.Account(_signerPrivateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+            
+            var queryHandler = web3.Eth.GetContractQueryHandler<BatchGetCarbonCreditsFunction>();
     
             var result = await queryHandler.QueryDeserializingToObjectAsync<CarbonCreditTokenListOutData>(
                 function,
@@ -276,9 +323,11 @@ public class BesuClientService: IBesuClientService
                 carbonCredits.Add(AdaptToCarbonCreditCertifierDto(token));
             }
             
+            
             var webSocketMessageDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), carbonCredits);
             
             _webSocketHostedClientService.SendMessageAsync(webSocketMessageDto);
+            Console.WriteLine("Updates of carbon credits send to carbon certifier.");
         }
         catch (Exception ex)
         {
@@ -293,7 +342,7 @@ public class BesuClientService: IBesuClientService
         {
             CreditCode = token.CreditCode,
             VintageYear = (int)token.VintageYear,
-            TonCO2Quantity = (double)token.TonCO2Quantity,
+            TonCO2Quantity = token.TonCO2Quantity,
             Status = Enum.Parse<CarbonCreditStatus>(token.Status),
             OwnerName = token.OwnerName,
             OwnerDocument = token.OwnerDocument,
@@ -301,5 +350,61 @@ public class BesuClientService: IBesuClientService
             UpdatedAt = (long)token.UpdatedAt,
             ProjectCode = token.ProjectCode
         };
+    }
+    
+    public async Task<string> SetApprovalForAllAsync(string operatorAddress, string privateKey, bool approved)
+    {
+        try
+        {
+            var setApprovalFunction = new SetApprovalForAllFunction()
+            {
+                Operator = operatorAddress,
+                Approved = approved
+            };
+
+            var account = new Nethereum.Web3.Accounts.Account(privateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+            
+            var handler = web3.Eth.GetContractTransactionHandler<SetApprovalForAllFunction>();
+
+            var receipt = await handler.SendRequestAndWaitForReceiptAsync(_contractAddress, setApprovalFunction);
+
+            Console.WriteLine($"SetApprovalForAll transaction hash: {receipt.TransactionHash}");
+
+            return receipt.TransactionHash;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting approval for operator {operatorAddress}: {ex.Message}");
+            throw;
+        }
+    }
+    
+    public async Task<bool> IsApprovedForAllAsync(string accountAddress, string privateKey, string operatorAddress)
+    {
+        try
+        {
+            var isApprovedFunction = new IsApprovedForAllFunction()
+            {
+                Account = accountAddress,
+                Operator = operatorAddress
+            };
+            
+            var account = new Nethereum.Web3.Accounts.Account(privateKey);
+            var web3 = new Web3(account, _rpcBaseUrl);
+
+            var handler = web3.Eth.GetContractQueryHandler<IsApprovedForAllFunction>();
+
+            var isApproved = await handler.QueryAsync<bool>(_contractAddress, isApprovedFunction);
+
+            Console.WriteLine($"Is operator {operatorAddress} approved for account {accountAddress}: {isApproved}");
+
+            return isApproved;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking approval for operator {operatorAddress} on account {accountAddress}: {ex.Message}");
+            throw;
+        }
     }
 }

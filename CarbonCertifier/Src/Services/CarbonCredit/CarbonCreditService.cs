@@ -1,4 +1,5 @@
-﻿using CarbonCertifier.Data;
+﻿using System.Text.Json;
+using CarbonCertifier.Data;
 using CarbonCertifier.Entities.CarbonCredit;
 using CarbonCertifier.Entities.CarbonCredit.Dtos;
 using CarbonCertifier.Entities.CarbonCredit.Enums;
@@ -177,8 +178,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
         try
         {
             Console.WriteLine("Updates received from blockchain.");
-            
-            var carbonCredits = (List<CarbonCreditDto>) message;
+            var carbonCredits = JsonSerializer.Deserialize<List<CarbonCreditDto>>((string)message);
             if (carbonCredits is { Count: > 0 })
             {
                 await UpdateCarbonCreditsFromBlockchainAsync(carbonCredits);

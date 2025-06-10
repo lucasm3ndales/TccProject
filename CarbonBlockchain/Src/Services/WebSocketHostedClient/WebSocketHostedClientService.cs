@@ -14,26 +14,34 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
     private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(3);
     private readonly string? _webSocketConnectionUrl = configuration.GetConnectionString("WebSocketConnection");
     private readonly Channel<WebSocketMessageDto> _messageQueue = Channel.CreateUnbounded<WebSocketMessageDto>();
+    private ClientWebSocket? _webSocket;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        var queueProcessingTask = ProcessQueueAsync(cancellationToken);
+
         while (!cancellationToken.IsCancellationRequested)
         {
             if (string.IsNullOrEmpty(_webSocketConnectionUrl))
                 throw new ArgumentNullException("Error to start connection. Base URL not configured.");
 
+            _webSocket = new ClientWebSocket();
+
             try
             {
-                using var webSocket = new ClientWebSocket();
-
-                await webSocket.ConnectAsync(new Uri(_webSocketConnectionUrl), cancellationToken);
+                await _webSocket.ConnectAsync(new Uri(_webSocketConnectionUrl), cancellationToken);
                 Console.WriteLine("Connected in web socket successfully.");
 
-                await Task.WhenAll(
-                    ReceiveMessagesAsync(webSocket, cancellationToken),
-                    ProcessQueueAsync(webSocket, cancellationToken),
-                    SendHeartbeatAsync(webSocket, cancellationToken)
-                );
+                var receiveTask = ReceiveMessagesAsync(_webSocket, cancellationToken);
+                var heartbeatTask = SendHeartbeatAsync(_webSocket, cancellationToken);
+
+                await Task.WhenAny(receiveTask, heartbeatTask);
+
+                if (_webSocket.State == WebSocketState.Open)
+                {
+                    await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing connection",
+                        cancellationToken);
+                }
             }
             catch (Exception ex)
             {
@@ -43,21 +51,33 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
 
             await Task.Delay(_reconnectInterval, cancellationToken);
         }
+
+        _messageQueue.Writer.Complete();
+        await queueProcessingTask;
     }
 
-    private async Task ProcessQueueAsync(WebSocket webSocket, CancellationToken cancellationToken)
+    private async Task ProcessQueueAsync(CancellationToken cancellationToken)
     {
         while (await _messageQueue.Reader.WaitToReadAsync(cancellationToken))
         {
             while (_messageQueue.Reader.TryRead(out var message))
             {
-                if (webSocket.State == WebSocketState.Open)
+                while ((_webSocket == null || _webSocket.State != WebSocketState.Open) &&
+                       !cancellationToken.IsCancellationRequested)
                 {
-                    await SendMessageAsync(webSocket, message);
+                    await Task.Delay(500, cancellationToken);
                 }
-                else
+
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                try
                 {
-                    Console.WriteLine("Cannot send message, socket is not open.");
+                    await SendMessageAsync(_webSocket!, message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending message: {ex.Message}");
                 }
             }
         }
@@ -72,7 +92,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
                 new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "Heartbeat");
 
             await SendMessageAsync(webSocket, heartbeatDto);
-            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+            await Task.Delay(TimeSpan.FromMinutes(2), cancellationToken);
         }
     }
 
@@ -89,8 +109,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             {
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
                 ms.Write(buffer, 0, result.Count);
-            }
-            while (!result.EndOfMessage);
+            } while (!result.EndOfMessage);
 
             if (result.MessageType == WebSocketMessageType.Close)
             {
@@ -131,7 +150,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
 
     public async Task SendMessageAsync(WebSocketMessageDto message)
     {
-            await _messageQueue.Writer.WriteAsync(message);
+        await _messageQueue.Writer.WriteAsync(message);
     }
 
     private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<object?, Task> onMessage)
@@ -145,7 +164,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             };
 
             var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
-            
+
             var messageStr = GetMessageAsString(jsonMessage?.Message);
 
             if (jsonMessage.StatusCode == 200 && !string.IsNullOrEmpty(messageStr) && messageStr == "Ack")
@@ -171,7 +190,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
         }
     }
-    
+
     private string? GetMessageAsString(object? message)
     {
         if (message is null)
@@ -184,7 +203,6 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
         {
             if (jsonElement.ValueKind == JsonValueKind.String)
                 return jsonElement.GetString();
-
         }
 
         return null;
@@ -198,7 +216,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
             {
                 throw new Exception("Message is Empty.");
             }
-            
+
             var jsonMessage = JsonSerializer.Serialize(message);
             var jsonObj = JsonSerializer.Deserialize<List<CarbonCreditCertifierDto>>(jsonMessage);
 
@@ -208,7 +226,7 @@ public class WebSocketHostedClientService(IConfiguration configuration, IService
                     .CreateScope()
                     .ServiceProvider
                     .GetService<ICarbonCreditHandlerService>();
-                
+
                 await carbonCreditHandlerService.HandleCertifiedCarbonCreditsAsync(jsonObj);
             }
         }

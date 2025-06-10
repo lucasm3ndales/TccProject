@@ -10,6 +10,6 @@ public class BalanceOfFunction : FunctionMessage
     [Parameter("address", "account", 1)]
     public string Account { get; set; }
 
-    [Parameter("uint256", "id", 2)]
-    public BigInteger TokenId { get; set; }
+    [Parameter("string", "creditCode", 2)]
+    public string CreditCode { get; set; }
 }

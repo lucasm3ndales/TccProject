@@ -5,6 +5,6 @@ namespace CarbonCertifier.Services.WebSocketHostedServer;
 
 public interface IWebSocketHostedServerService
 {
-    Task ConnectAsync(WebSocket webSocket, WebSocketMessageDto? message, Func<object, Task> onMessage);
+    Task ConnectAsync(WebSocket webSocket, WebSocketMessageDto? message, Func<string, Task> onMessage);
     Task SendWebSocketMessageAsync(object message);
 }

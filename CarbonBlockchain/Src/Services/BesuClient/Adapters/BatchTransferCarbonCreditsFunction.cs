@@ -14,4 +14,10 @@ public class BatchTransferCarbonCreditsFunction : FunctionMessage
 
     [Parameter("string[]", "creditCodes", 3)]
     public List<string> CreditCodes { get; set; }
+    
+    [Parameter("string", "ownerName", 4)]
+    public string OwnerName { get; set; }
+    
+    [Parameter("string", "ownerDocument", 5)]
+    public string OwnerDocument{ get; set; }
 }

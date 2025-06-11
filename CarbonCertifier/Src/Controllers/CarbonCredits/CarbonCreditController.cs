@@ -1,4 +1,5 @@
-﻿using CarbonCertifier.Entities.CarbonCredit.Dtos;
+﻿using System.Text.Json;
+using CarbonCertifier.Entities.CarbonCredit.Dtos;
 using CarbonCertifier.Services.CarbonCredit;
 using CarbonCertifier.Services.WebSocketHostedServer;
 using CarbonCertifier.Services.WebSocketHostedServer.Dtos;
@@ -47,7 +48,7 @@ public class CreditCarbonController(ICarbonCreditService carbonCreditService, IW
         var webSocketMessageDto = new WebSocketMessageDto(
             200, 
             DateTimeOffset.UtcNow.ToUnixTimeSeconds(), 
-            await carbonCreditService.GetAllAsync());
+            JsonSerializer.Serialize(await carbonCreditService.GetAllAsync()));
         
         await webSocketHostedService.ConnectAsync(
             webSocket, 

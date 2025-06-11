@@ -1,75 +1,94 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using CarbonCertifier.Services.WebSocketHostedServer;
 using CarbonCertifier.Services.WebSocketHostedServer.Dtos;
 
-namespace CarbonCertifier.Services.WebSocketHostedServer;
-
-public class WebSocketHostedServerService(IConfiguration configuration) : BackgroundService, IWebSocketHostedServerService
+public class WebSocketHostedServerService : BackgroundService, IWebSocketHostedServerService
 {
-    private readonly Dictionary<Guid, WebSocket> _clients = new();
-    private readonly byte[] _buffer = new byte[1024 * 4];
-    private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(5);
-    private readonly string? _webSocketConnectionUrl = configuration.GetConnectionString("WebSocketConnection");
+    private WebSocket? _webSocket;
 
-    protected override Task ExecuteAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
 
-    public async Task ConnectAsync(WebSocket webSocket, WebSocketMessageDto? message, Func<object, Task> onMessage)
+    public async Task ConnectAsync(WebSocket webSocket, WebSocketMessageDto? initialMessage, Func<string, Task> onMessage)
     {
-        var clientId = Guid.NewGuid();
+        if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+        {
+            await _webSocket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "New connection started.", CancellationToken.None);
+        }
 
-        _clients[clientId] = webSocket;
+        _webSocket = webSocket;
 
-        Console.WriteLine($"Client {clientId} start connection.");
+        Console.WriteLine("New web socket connection started.");
+
+        if (initialMessage != null)
+        {
+            await SendMessageAsync(webSocket, initialMessage);
+        }
+
+        var buffer = new byte[1024 * 4];
 
         try
         {
-
-            if (message != null)
+            while (webSocket.State == WebSocketState.Open)
             {
-                await SendMessageAsync(webSocket, message);
-            }
+                using var ms = new MemoryStream();
+                WebSocketReceiveResult result;
 
-            while (!webSocket.CloseStatus.HasValue)
-            {
-                var response = await webSocket.ReceiveAsync(new ArraySegment<byte>(_buffer), CancellationToken.None);
-
-                if (response.MessageType == WebSocketMessageType.Text)
+                do
                 {
-                    var receivedMessage = Encoding.UTF8.GetString(_buffer, 0, response.Count);
-
-                    await HandleReceivedMessageAsync(webSocket, receivedMessage, onMessage);
+                    result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    ms.Write(buffer, 0, result.Count);
                 }
+                while (!result.EndOfMessage);
 
-                if (response.MessageType == WebSocketMessageType.Close && webSocket.CloseStatus.HasValue)
+                if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    await webSocket.CloseAsync(webSocket.CloseStatus.Value, webSocket.CloseStatusDescription, CancellationToken.None);
+                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Connection closed.", CancellationToken.None);
+                    Console.WriteLine("Web socket connection closed.");
+                    break;
+                }
+                
+                if (result.MessageType == WebSocketMessageType.Text)
+                {
+                    ms.Seek(0, SeekOrigin.Begin);
+                    var received = Encoding.UTF8.GetString(ms.ToArray());
+                    await HandleReceivedMessageAsync(webSocket, received, onMessage);
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error with WebSocket connection for client {clientId}: {ex.Message}");
+            Console.WriteLine($"Error during web socket connection: {ex.Message}");
         }
         finally
         {
-            _clients.Remove(clientId);
-            Console.WriteLine($"Client {clientId} disconnected.");
+            Console.WriteLine("Web socket connection closed.");
+            _webSocket = null;
         }
     }
 
-    
     public async Task SendWebSocketMessageAsync(object message)
+    {
+        if (_webSocket?.State == WebSocketState.Open)
+        {
+            var jsonMessage = JsonSerializer.Serialize(message);
+            var dto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), jsonMessage);
+            await SendMessageAsync(_webSocket, dto);
+        }
+        else
+        {
+            Console.WriteLine("No active connection to send the message.");
+        }
+    }
+
+    private async Task SendMessageAsync(WebSocket webSocket, WebSocketMessageDto message)
     {
         try
         {
-            var webSocketMessageDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), message);
-            
-           for (var i = 0; i < _clients.Count; i++)
-           {
-               var websocket = _clients.ElementAt(i).Value;
-               await SendMessageAsync(websocket, webSocketMessageDto);
-           }
+            var json = JsonSerializer.Serialize(message);
+            var buffer = Encoding.UTF8.GetBytes(json);
+            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
         }
         catch (Exception ex)
         {
@@ -77,91 +96,45 @@ public class WebSocketHostedServerService(IConfiguration configuration) : Backgr
         }
     }
 
-    private async Task SendMessageAsync(WebSocket webSocket, WebSocketMessageDto? message)
+    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<string, Task> onMessage)
     {
         try
         {
-            var options = new JsonSerializerOptions
+            var dto = JsonSerializer.Deserialize<WebSocketMessageDto>(message);
+
+            var msg = dto.Message;
+
+            WebSocketMessageDto? response;
+            
+            if (msg is not string msgStr)
             {
-                PropertyNameCaseInsensitive = true
-            };
+                throw new Exception("Invalid message type.");
+            }
+            
+            if (string.IsNullOrWhiteSpace(msgStr))
+            {
+                response = new WebSocketMessageDto(400, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "Void message.");
+                await SendMessageAsync(webSocket, response);
+                return;
+            }
+            
+            if (msgStr == "HEARTBEAT")
+            {
+                Console.WriteLine("Heartbeat received.");
+                response = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "ACK");
+                await SendMessageAsync(webSocket, response);
+                return;
+            }
+            
+            
+            await onMessage(msgStr);
 
-            var json = JsonSerializer.Serialize(message, options);
-            var buffer = Encoding.UTF8.GetBytes(json);
-
-            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+            response = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), "Message received successfully.");
+            await SendMessageAsync(webSocket, response);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending message through WebSocket: {ex.Message}");
+            Console.WriteLine($"Error to handle message: {ex.Message}");
         }
     }
-
-    private async Task HandleReceivedMessageAsync(WebSocket webSocket, string message, Func<object?, Task> onMessage)
-    {
-        try
-        {
-            WebSocketMessageDto? responseDto = null;
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                IncludeFields = true
-            };
-            var jsonMessage = JsonSerializer.Deserialize<WebSocketMessageDto>(message, options);
-
-            var messageStr = GetMessageAsString(jsonMessage?.Message);
-
-            if (!string.IsNullOrEmpty(messageStr) && messageStr == "Heartbeat")
-            {
-                Console.WriteLine($"Heartbeat received.");
-                responseDto = new WebSocketMessageDto(
-                    200,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Ack");
-            }
-            else if (string.IsNullOrEmpty(messageStr))
-            {
-                Console.WriteLine($"Message received null or empty.");
-                responseDto = new WebSocketMessageDto(
-                    400,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Message cannot be empty.");
-            }
-            else
-            {
-                responseDto = new WebSocketMessageDto(
-                    200,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    "Message received successfully!");
-
-                await onMessage(jsonMessage?.Message);
-            }
-
-            await SendMessageAsync(webSocket, responseDto);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error to handle web socket received message: {ex.Message}");
-        }
-    }
-    
-    private string? GetMessageAsString(object? message)
-    {
-        if (message is null)
-            return null;
-
-        if (message is string str)
-            return str;
-
-        if (message is JsonElement jsonElement)
-        {
-            if (jsonElement.ValueKind == JsonValueKind.String)
-                return jsonElement.GetString();
-
-        }
-
-        return null;
-    }
-    
 }

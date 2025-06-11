@@ -6,6 +6,7 @@ using CarbonCertifier.Entities.CarbonCredit.Enums;
 using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Services.WebSocketHostedServer;
+using CarbonCertifier.Services.WebSocketHostedServer.Dtos;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -173,12 +174,12 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
         }
     }
 
-    public async Task HandleWebSocketMessageUpdateAsync(object message)
+    public async Task HandleWebSocketMessageUpdateAsync(string message)
     {
         try
         {
-            Console.WriteLine("Updates received from blockchain.");
-            var carbonCredits = JsonSerializer.Deserialize<List<CarbonCreditDto>>((string)message);
+            Console.WriteLine("Updates received from blockchain api.");
+            var carbonCredits = JsonSerializer.Deserialize<List<CarbonCreditDto>>(message);
             if (carbonCredits is { Count: > 0 })
             {
                 await UpdateCarbonCreditsFromBlockchainAsync(carbonCredits);

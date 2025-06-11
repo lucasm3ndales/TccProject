@@ -101,7 +101,9 @@ public class BesuClientService : IBesuClientService
             {
                 From = dto.From,
                 To = dto.To,
-                CreditCodes = dto.CreditCodes
+                CreditCodes = dto.CreditCodes,
+                OwnerName = dto.ownerName,
+                OwnerDocument = dto.ownerDocument
             };
             
             var account = new Nethereum.Web3.Accounts.Account(dto.PrivateKey);
@@ -323,11 +325,7 @@ private async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(
                 carbonCredits.Add(AdaptToCarbonCreditCertifierDto(token));
             }
             
-            
-            var webSocketMessageDto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), carbonCredits);
-            
-            _webSocketHostedClientService.SendMessageAsync(webSocketMessageDto);
-            Console.WriteLine("Updates of carbon credits send to carbon certifier.");
+            _webSocketHostedClientService.SendWebSocketMessageAsync(carbonCredits);
         }
         catch (Exception ex)
         {
@@ -352,17 +350,17 @@ private async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(
         };
     }
     
-    public async Task<string> SetApprovalForAllAsync(string operatorAddress, string privateKey, bool approved)
+    public async Task<string> SetApprovalForAllAsync(SetApprovalDto dto)
     {
         try
         {
             var setApprovalFunction = new SetApprovalForAllFunction()
             {
-                Operator = operatorAddress,
-                Approved = approved
+                Operator = dto.AccountAddress,
+                Approved = dto.IsApproved
             };
 
-            var account = new Nethereum.Web3.Accounts.Account(privateKey);
+            var account = new Nethereum.Web3.Accounts.Account(dto.PrivateKey);
             var web3 = new Web3(account, _rpcBaseUrl);
             
             var handler = web3.Eth.GetContractTransactionHandler<SetApprovalForAllFunction>();
@@ -375,7 +373,7 @@ private async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error setting approval for operator {operatorAddress}: {ex.Message}");
+            Console.WriteLine($"Error setting approval for operator {dto.AccountAddress}: {ex.Message}");
             throw;
         }
     }

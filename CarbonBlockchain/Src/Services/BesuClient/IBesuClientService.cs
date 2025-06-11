@@ -14,6 +14,6 @@ public interface IBesuClientService
     Task<bool> AvailableCarbonCreditTokensInBatchAsync(List<string> creditCodes);
     Task HandleCarbonCreditTokensUpdatesAsync(List<string> creditCodes);
     Task<BigInteger> GetBalanceOfAsync(string accountAddress, string privateKey, string creditCode);
-    Task<string> SetApprovalForAllAsync(string operatorAddress, string privateKey, bool approved);
+    Task<string> SetApprovalForAllAsync(SetApprovalDto dto);
     Task<bool> IsApprovedForAllAsync(string accountAddress, string privateKey, string operatorAddress);
 }

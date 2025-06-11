@@ -11,8 +11,8 @@ public interface ICarbonCreditService
     Task<CarbonCreditDto> GetByIdAsync(long id);
 
     Task<List<CarbonCreditDto>> GetAllAsync();
-    
-    Task HandleWebSocketMessageUpdateAsync(object message);
+
+    Task HandleWebSocketMessageUpdateAsync(string message);
 
     Task<List<CarbonCreditSimpleDto>> UpdateCarbonCreditsAsync(string ids, List<CarbonCreditUpdateDto> dtos);
 }

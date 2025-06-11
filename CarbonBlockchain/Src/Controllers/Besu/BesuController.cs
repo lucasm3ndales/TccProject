@@ -26,10 +26,9 @@ public class BesuController(IBesuClientService besuClientService) : ControllerBa
     /// Aprova uma conta a tranferir tokens em nome de outra.
     /// </summary>
     [HttpPost("account/approval")]
-    public async Task<ActionResult<string>> SetApprovalForAllAsync([FromQuery] string accountAddress,
-        [FromQuery] string privateKey, [FromQuery] bool isApproved)
+    public async Task<ActionResult<string>> SetApprovalForAllAsync([FromBody] SetApprovalDto dto)
     {
-        var response = await besuClientService.SetApprovalForAllAsync(accountAddress, privateKey, isApproved);
+        var response = await besuClientService.SetApprovalForAllAsync(dto);
         return Ok(response);
     }
 

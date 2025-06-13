@@ -340,7 +340,7 @@ private async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(
         {
             CreditCode = token.CreditCode,
             VintageYear = (int)token.VintageYear,
-            TonCO2Quantity = token.TonCO2Quantity,
+            TonCO2Quantity = token.TonCO2Quantity / 100,
             Status = Enum.Parse<CarbonCreditStatus>(token.Status),
             OwnerName = token.OwnerName,
             OwnerDocument = token.OwnerDocument,

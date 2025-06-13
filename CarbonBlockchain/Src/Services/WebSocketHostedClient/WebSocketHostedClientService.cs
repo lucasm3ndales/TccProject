@@ -7,14 +7,20 @@ using CarbonBlockchain.Services.WebSocketHostedClient.Dtos;
 
 namespace CarbonBlockchain.Services.WebSocketHostedClient;
 
-public class WebSocketHostedClientService(
-    IConfiguration configuration,
-    IServiceProvider serviceProvider)
+public class WebSocketHostedClientService
     : BackgroundService, IWebSocketHostedClientService
 {
+    private readonly IServiceProvider _serviceProvider;
     private ClientWebSocket? _webSocket;
     private readonly TimeSpan _reconnectInterval = TimeSpan.FromSeconds(3);
-    private readonly string? _serverUrl = configuration.GetConnectionString("WebSocketConnection");
+    private readonly string? _serverUrl;
+
+    public WebSocketHostedClientService(IConfiguration configuration, IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+        _webSocket = new ClientWebSocket();
+        _serverUrl = configuration.GetConnectionString("WebSocketConnection");
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -26,6 +32,7 @@ public class WebSocketHostedClientService(
                 return;
             }
 
+            _webSocket?.Dispose();
             _webSocket = new ClientWebSocket();
 
             try
@@ -143,7 +150,7 @@ public class WebSocketHostedClientService(
 
             if (data != null)
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = _serviceProvider.CreateScope();
                 var handler = scope.ServiceProvider.GetRequiredService<ICarbonCreditHandlerService>();
                 await handler.HandleCertifiedCarbonCreditsAsync(data);
             }
@@ -173,6 +180,8 @@ public class WebSocketHostedClientService(
     
     public async Task SendWebSocketMessageAsync(object message)
     {
+        await _webSocket.ConnectAsync(new Uri(_serverUrl), CancellationToken.None);
+        
         if (_webSocket is not { State: WebSocketState.Open })
         {
             throw new Exception("WebSocket is not connected.");

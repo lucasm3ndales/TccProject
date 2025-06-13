@@ -12,26 +12,6 @@ namespace CarbonCertifier.Controllers.CarbonCredits;
 public class CreditCarbonController(ICarbonCreditService carbonCreditService, IWebSocketHostedServerService webSocketHostedService) : ControllerBase
 {
     /// <summary>
-    /// Busca um crédito de carbono específico
-    /// </summary>
-    [HttpGet("{id:long}")]
-    public async Task<ActionResult<CarbonCreditDto>> GetCarbonCreditAsync(long id)
-    {
-        var response = await carbonCreditService.GetByIdAsync(id);
-        return Ok(response);
-    }
-    
-    /// <summary>
-    /// Busca todos os créditos de carbono
-    /// </summary>
-    [HttpGet()]
-    public async Task<ActionResult<List<CarbonCreditDto>>> GetCarbonCreditsAsync()
-    {
-        var response = await carbonCreditService.GetAllAsync();
-        return Ok(response);
-    }
-
-    /// <summary>
     /// Atualiza os clientes conectados sobre os créditos de carbono e recebe atualizações
     /// </summary>
     [HttpGet("stream")]
@@ -54,6 +34,27 @@ public class CreditCarbonController(ICarbonCreditService carbonCreditService, IW
             webSocket, 
             webSocketMessageDto, 
             carbonCreditService.HandleWebSocketMessageUpdateAsync);
+    }
+    
+    
+    /// <summary>
+    /// Busca um crédito de carbono específico
+    /// </summary>
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<CarbonCreditDto>> GetCarbonCreditAsync(long id)
+    {
+        var response = await carbonCreditService.GetByIdAsync(id);
+        return Ok(response);
+    }
+    
+    /// <summary>
+    /// Busca todos os créditos de carbono
+    /// </summary>
+    [HttpGet()]
+    public async Task<ActionResult<List<CarbonCreditDto>>> GetCarbonCreditsAsync()
+    {
+        var response = await carbonCreditService.GetAllAsync();
+        return Ok(response);
     }
 
     /// <summary>

@@ -207,7 +207,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
                     .Where(e => e.CreditCode == i.CreditCode)
                     .FirstOrDefaultAsync();
 
-                entity.Adapt(i);
+                i.Adapt(entity);
 
                 await dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();

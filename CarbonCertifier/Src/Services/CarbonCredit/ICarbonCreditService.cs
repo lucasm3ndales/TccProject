@@ -6,7 +6,7 @@ namespace CarbonCertifier.Services.CarbonCredit;
 
 public interface ICarbonCreditService
 {
-    Task GenerateCarbonCreditsAsync(CarbonProjectEntity carbonProject, IDbContextTransaction transaction);
+    Task<List<CarbonCreditDto>> GenerateCarbonCreditsAsync(CarbonProjectEntity carbonProject, IDbContextTransaction transaction);
 
     Task<CarbonCreditDto> GetByIdAsync(long id);
 

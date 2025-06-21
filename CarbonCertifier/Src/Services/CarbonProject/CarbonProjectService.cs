@@ -2,12 +2,16 @@
 using CarbonCertifier.Entities.CarbonProject;
 using CarbonCertifier.Entities.CarbonProject.Dtos;
 using CarbonCertifier.Services.CarbonCredit;
+using CarbonCertifier.Services.WebSocketHostedServer;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarbonCertifier.Services.CarbonProject;
 
-public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCreditService carbonCreditService) : ICarbonProjectService
+public class CarbonProjectService(
+    CarbonCertifierDbContext dbContext, 
+    ICarbonCreditService carbonCreditService, 
+    IWebSocketHostedServerService webSocketHostedServerService) : ICarbonProjectService
 {
     public async Task<CarbonProjectDto> CreateAsync(CarbonProjectCreateDto dto)
     {
@@ -23,9 +27,11 @@ public class CarbonProjectService(CarbonCertifierDbContext dbContext, ICarbonCre
             
             await dbContext.SaveChangesAsync();
             
-            await carbonCreditService.GenerateCarbonCreditsAsync(dbResult.Entity, transaction);
+             var message = await carbonCreditService.GenerateCarbonCreditsAsync(dbResult.Entity, transaction);
             
             await transaction.CommitAsync();
+            
+            await webSocketHostedServerService.SendWebSocketMessageAsync(message);
             
             return carbonProject.Adapt<CarbonProjectDto>();
         }

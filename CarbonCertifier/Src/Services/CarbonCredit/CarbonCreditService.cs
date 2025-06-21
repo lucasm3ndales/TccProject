@@ -15,33 +15,11 @@ namespace CarbonCertifier.Services.CarbonCredit;
 
 public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketHostedServerService webSocketHostedServerService) : ICarbonCreditService
 {
-    public async Task GenerateCarbonCreditsAsync(CarbonProjectEntity carbonProject, IDbContextTransaction transaction)
+    public async Task<List<CarbonCreditDto>> GenerateCarbonCreditsAsync(CarbonProjectEntity carbonProject, IDbContextTransaction transaction)
     {
         try
         {
-            var random = new Random();
-            var createCounter = random.Next(5, 10);
-            var currentYear = DateTime.UtcNow.Year;
-
-            var carbonCredits = new List<CarbonCreditEntity>();
-
-            for (var i = 0; i < createCounter; i++)
-            {
-                var credit = new CarbonCreditEntity
-                {
-                    CreditCode = Guid.NewGuid().ToString(),
-                    VintageYear = currentYear,
-                    TonCO2Quantity = Math.Round(random.NextDouble() * (10 - 1) + 1, 2),
-                    OwnerName = carbonProject.Developer,
-                    OwnerDocument = GenerateRandomCnpj(),
-                    CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    CarbonProject = carbonProject,
-                    Status = CarbonCreditStatus.ISSUED
-                };
-
-                carbonCredits.Add(credit);
-            }
+            var carbonCredits = CreateCarbonCredits(carbonProject);
 
             await dbContext.CarbonCredits.AddRangeAsync(carbonCredits); 
 
@@ -49,21 +27,46 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
 
             await dbContext.SaveChangesAsync(); 
             
-            var message = carbonCredits.Select(e =>
+            return carbonCredits.Select(e =>
                 {
                     var carbonCreditDto = e.Adapt<CarbonCreditDto>();
                     carbonCreditDto.ProjectCode = e.CarbonProject.ProjectCode;
                     return carbonCreditDto;
                 })
                 .ToList();
-            
-            await webSocketHostedServerService.SendWebSocketMessageAsync(message);
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
             throw new Exception("Error setting carbon credits in carbon project.", ex);
         }
+    }
+
+    private static List<CarbonCreditEntity> CreateCarbonCredits(CarbonProjectEntity carbonProject)
+    {
+        var carbonCredits = new List<CarbonCreditEntity>();
+        var random = new Random();
+        var createCounter = random.Next(5, 10);
+        var currentYear = DateTime.UtcNow.Year;
+        for (var i = 0; i < createCounter; i++)
+        {
+            var credit = new CarbonCreditEntity
+            {
+                CreditCode = Guid.NewGuid().ToString(),
+                VintageYear = currentYear,
+                TonCO2Quantity = Math.Round(random.NextDouble() * (10 - 1) + 1, 2),
+                OwnerName = carbonProject.Developer,
+                OwnerDocument = GenerateRandomCnpj(),
+                CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                CarbonProject = carbonProject,
+                Status = CarbonCreditStatus.ISSUED
+            };
+
+            carbonCredits.Add(credit);
+        }
+
+        return carbonCredits;
     }
     
     private static string GenerateRandomCnpj()
@@ -85,33 +88,14 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
         try
         {
             var idsList = ids.Split(',').ToList();
-            
             var carbonCredits = await dbContext
                 .CarbonCredits
                 .Where(e => idsList.Contains(e.Id.ToString()))
                 .Include(e => e.CarbonProject)
                 .ToListAsync();
 
-            var updates = new List<CarbonCreditEntity>([]);
-            for (var i = 0; i < carbonCredits.Count; i++)
-            {
-                var entity = carbonCredits.ElementAt(i);
-
-                for (var j = 0; j < dtos.Count; j++)
-                {
-                    var dto = dtos.ElementAt(j);
-                    if (entity.CreditCode != dto.CreditCode) 
-                        continue;
-
-                    dto.Adapt(entity);
-                    entity.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    updates.Add(entity);
-                    break;
-                }                
-            }
-            
+            var updates = UpdateCarbonCredits(carbonCredits, dtos);
             dbContext.CarbonCredits.UpdateRange(updates);
-            
             await dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
             
@@ -132,6 +116,28 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
             await transaction.RollbackAsync();
             throw new Exception("Error to update carbon credits.");
         }
+    }
+
+    private static List<CarbonCreditEntity> UpdateCarbonCredits(List<CarbonCreditEntity> carbonCredits, List<CarbonCreditUpdateDto> dtos)
+    {
+        var updates = new List<CarbonCreditEntity>();
+        for (var i = 0; i < carbonCredits.Count; i++)
+        {
+            var entity = carbonCredits.ElementAt(i);
+
+            for (var j = 0; j < dtos.Count; j++)
+            {
+                var dto = dtos.ElementAt(j);
+                if (entity.CreditCode != dto.CreditCode) 
+                    continue;
+
+                dto.Adapt(entity);
+                entity.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                updates.Add(entity);
+                break;
+            }                
+        }
+        return updates;
     }
 
     public async Task<CarbonCreditDto> GetByIdAsync(long id)

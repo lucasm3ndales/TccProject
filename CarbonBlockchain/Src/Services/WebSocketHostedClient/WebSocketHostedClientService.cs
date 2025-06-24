@@ -106,30 +106,24 @@ public class WebSocketHostedClientService
         try
         {
             var dto = JsonSerializer.Deserialize<WebSocketMessageDto>(message);
-            
             var msg = dto.Message;
-            
             if (msg is not string msgStr)
             {
                 throw new Exception("Invalid message type.");
             }
-            
             if (string.IsNullOrWhiteSpace(msgStr))
             {
                 Console.WriteLine("Received invalid WebSocket message.");
                 return;
             }
-            
             if (dto.StatusCode == 200 && msgStr == "ACK")
             {
                 Console.WriteLine("Heartbeat acknowledged by the server.");
             }
-            
             if (dto.StatusCode == 400)
             {
                 Console.WriteLine("Bad request received from the server.");
             }
-            
             if (dto.StatusCode == 200 && msgStr != "ACK")
             {
                 Console.WriteLine("Data message received successfully.");

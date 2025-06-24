@@ -1,4 +1,3 @@
-using System.Numerics;
 using CarbonBlockchain.Services.BesuClient;
 using CarbonBlockchain.Services.BesuClient.Adapters;
 using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;

@@ -27,7 +27,7 @@ public class CarbonProjectService(
             
             await dbContext.SaveChangesAsync();
             
-             var message = await carbonCreditService.GenerateCarbonCreditsAsync(dbResult.Entity, transaction);
+            var message = await carbonCreditService.GenerateCarbonCreditsAsync(dbResult.Entity, transaction);
             
             await transaction.CommitAsync();
             

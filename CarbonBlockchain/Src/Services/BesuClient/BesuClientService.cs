@@ -1,12 +1,9 @@
 ﻿using System.Numerics;
-using System.Text.Json;
 using CarbonBlockchain.Services.BesuClient.Adapters;
 using CarbonBlockchain.Services.BesuClient.Dtos;
 using CarbonBlockchain.Services.CarbonCreditHandler.Dtos;
 using CarbonBlockchain.Services.CarbonCreditHandler.Enums;
 using CarbonBlockchain.Services.WebSocketHostedClient;
-using CarbonBlockchain.Services.WebSocketHostedClient.Dtos;
-using Nethereum.Contracts;
 using Nethereum.Util;
 using Nethereum.Web3;
 
@@ -50,7 +47,7 @@ public class BesuClientService : IBesuClientService
             Console.WriteLine($"Transaction Hash: {receipt.TransactionHash}");
             return true;
         }
-
+    
         Console.WriteLine("Transaction failed or returned false.");
         return false;
     }

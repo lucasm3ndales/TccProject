@@ -19,7 +19,7 @@ public class CarbonProjectService(
         try
         {
             var carbonProject = dto.Adapt<CarbonProjectEntity>();
-            carbonProject.ProjectCode = Guid.NewGuid().ToString();
+            carbonProject.ProjectCode = Guid.NewGuid().ToString().ToLowerInvariant();
             carbonProject.CreatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             carbonProject.UpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             

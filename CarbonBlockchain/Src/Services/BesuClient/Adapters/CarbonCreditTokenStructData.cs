@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Nethereum.ABI.FunctionEncoding.Attributes;
+﻿using Nethereum.ABI.FunctionEncoding.Attributes;
 
 namespace CarbonBlockchain.Services.BesuClient.Adapters;
 

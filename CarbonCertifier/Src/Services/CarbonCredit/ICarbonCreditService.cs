@@ -6,7 +6,9 @@ namespace CarbonCertifier.Services.CarbonCredit;
 
 public interface ICarbonCreditService
 {
-    Task<List<CarbonCreditDto>> GenerateCarbonCreditsAsync(CarbonProjectEntity carbonProject, IDbContextTransaction transaction);
+    Task<List<CarbonCreditDto>> GenerateCarbonCreditsAsync(
+        CarbonProjectEntity carbonProject, 
+        IDbContextTransaction transaction);
 
     Task<CarbonCreditDto> GetByIdAsync(long id);
 
@@ -14,5 +16,7 @@ public interface ICarbonCreditService
 
     Task HandleWebSocketMessageUpdateAsync(string message);
 
-    Task<List<CarbonCreditSimpleDto>> UpdateCarbonCreditsAsync(string ids, List<CarbonCreditUpdateDto> dtos);
+    Task<List<CarbonCreditSimpleDto>> UpdateCarbonCreditsAsync(
+        string ids, 
+        List<CarbonCreditUpdateDto> dtos);
 }

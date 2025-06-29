@@ -52,7 +52,7 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
         {
             var credit = new CarbonCreditEntity
             {
-                CreditCode = Guid.NewGuid().ToString(),
+                CreditCode = Guid.NewGuid().ToString().ToLowerInvariant(),
                 VintageYear = currentYear,
                 TonCO2Quantity = Math.Round(random.NextDouble() * (10 - 1) + 1, 2),
                 OwnerName = carbonProject.Developer,
@@ -207,19 +207,20 @@ public class CarbonCreditService(CarbonCertifierDbContext dbContext, IWebSocketH
         var transaction = await dbContext.Database.BeginTransactionAsync();
         try
         {
-            var tasks = carbonCredits.Select(async i =>
+            foreach (var creditDto in carbonCredits)
             {
                 var entity = await dbContext.CarbonCredits
-                    .Where(e => e.CreditCode == i.CreditCode)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(e => e.CreditCode == creditDto.CreditCode);
 
-                i.Adapt(entity);
+                if (entity != null)
+                {
+                    creditDto.Adapt(entity);
+                }
+            }
 
-                await dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
-            });
+            await dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
 
-            await Task.WhenAll(tasks);
             Console.WriteLine("Carbon credits updated successfully!");
         }
         catch (Exception ex)

@@ -1,4 +1,6 @@
-﻿namespace CarbonBlockchain.Services.WebSocketHostedClient;
+﻿
+
+namespace CarbonBlockchain.Services.WebSocketHostedClient;
 
 public interface IWebSocketHostedClientService
 {

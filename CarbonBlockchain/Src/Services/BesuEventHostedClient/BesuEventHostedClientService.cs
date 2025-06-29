@@ -27,7 +27,7 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            Console.WriteLine($"[{DateTime.UtcNow:O}] Iniciando cliente de eventos Besu.");
+            Console.WriteLine($"[{DateTime.UtcNow:O}] Starting Besu event client.");
             var subscriptionEnded = new TaskCompletionSource<object>();
             StreamingWebSocketClient client = null;
             EthLogsObservableSubscription logsSubscription = null;
@@ -39,45 +39,45 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
                 logsSubscription.GetSubscriptionDataResponsesAsObservable()
                     .Subscribe(
                         log => _ = ProcessLogAsync(log),
-                        ex => { 
-                            Console.WriteLine($"[{DateTime.UtcNow:O}] Erro na subscrição WebSocket: {ex.Message}");
-                            subscriptionEnded.TrySetResult(null); 
+                        ex => {
+                            Console.WriteLine($"[{DateTime.UtcNow:O}] Error in WebSocket subscription: {ex.Message}");
+                            subscriptionEnded.TrySetResult(null);
                         },
-                        () => { 
-                            Console.WriteLine($"[{DateTime.UtcNow:O}] Subscrição WebSocket fechada de forma limpa.");
-                            subscriptionEnded.TrySetResult(null); 
+                        () => {
+                            Console.WriteLine($"[{DateTime.UtcNow:O}] WebSocket subscription closed cleanly.");
+                            subscriptionEnded.TrySetResult(null);
                         });
 
                 await client.StartAsync();
-                Console.WriteLine($"[{DateTime.UtcNow:O}] Conexão WebSocket com a rede Besu estabelecida.");
+                Console.WriteLine($"[{DateTime.UtcNow:O}] WebSocket connection with the Besu network established.");
 
                 var filter = Event<CarbonCreditUpdatesEvent>.GetEventABI().CreateFilterInput(_contractAddress);
-                
+
                 await logsSubscription.SubscribeAsync(filter);
-                Console.WriteLine($"[{DateTime.UtcNow:O}] Inscrito com sucesso nos eventos do contrato: {_contractAddress}. Aguardando eventos...");
+                Console.WriteLine($"[{DateTime.UtcNow:O}] Successfully subscribed to contract events: {_contractAddress}. Waiting for events...");
 
                 await subscriptionEnded.Task;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[{DateTime.UtcNow:O}] Falha ao iniciar ou conectar o cliente WebSocket: {ex.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow:O}] Failed to start or connect the WebSocket client: {ex.Message}");
             }
             finally
             {
-                Console.WriteLine($"[{DateTime.UtcNow:O}] Limpando conexão anterior.");
+                Console.WriteLine($"[{DateTime.UtcNow:O}] Cleaning up previous connection.");
                 if (logsSubscription != null)
                 {
-                    try { await logsSubscription.UnsubscribeAsync(); } catch {  }
+                    try { await logsSubscription.UnsubscribeAsync(); } catch { }
                 }
                 if (client != null)
                 {
-                    try { await client.StopAsync(); } catch {}
+                    try { await client.StopAsync(); } catch { }
                 }
             }
 
             if (!stoppingToken.IsCancellationRequested)
             {
-                Console.WriteLine($"[{DateTime.UtcNow:O}] Tentando reconectar em {_reconnectDelay.TotalSeconds} segundos...");
+                Console.WriteLine($"[{DateTime.UtcNow:O}] Attempting to reconnect in {_reconnectDelay.TotalSeconds} seconds...");
                 await Task.Delay(_reconnectDelay, stoppingToken);
             }
         }
@@ -89,8 +89,8 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
         {
             var decoded = Event<CarbonCreditUpdatesEvent>.DecodeEvent(log);
             if (decoded?.Event == null) return;
-            
-            Console.WriteLine($"[{DateTime.UtcNow:O}] Evento recebido! Função: {decoded.Event.Func} | Operador: {decoded.Event.Operator}");
+
+            Console.WriteLine($"[{DateTime.UtcNow:O}] Event received! Function: {decoded.Event.Func} | Operator: {decoded.Event.Operator}");
 
             var tokenIds = decoded.Event.TokenIds;
             var creditCodes = decoded.Event.CreditCodes;
@@ -104,13 +104,13 @@ public class BesuEventHostedClientService : BackgroundService, IBesuEventHostedC
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[{DateTime.UtcNow:O}] Erro ao processar evento do contrato: {ex.Message}");
+            Console.WriteLine($"[{DateTime.UtcNow:O}] Error processing contract event: {ex.Message}");
         }
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine($"[{DateTime.UtcNow:O}] O serviço de eventos Besu está sendo parado.");
+        Console.WriteLine($"[{DateTime.UtcNow:O}] The Besu event service is stopping.");
         await base.StopAsync(cancellationToken);
     }
 }

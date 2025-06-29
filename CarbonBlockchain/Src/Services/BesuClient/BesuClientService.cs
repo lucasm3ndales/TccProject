@@ -322,7 +322,7 @@ private async Task<List<CarbonCreditTokenOutData>> GetCarbonCreditsInBatchAsync(
                 carbonCredits.Add(AdaptToCarbonCreditCertifierDto(token));
             }
             
-            _webSocketHostedClientService.SendWebSocketMessageAsync(carbonCredits);
+            await _webSocketHostedClientService.SendWebSocketMessageAsync(carbonCredits);
         }
         catch (Exception ex)
         {

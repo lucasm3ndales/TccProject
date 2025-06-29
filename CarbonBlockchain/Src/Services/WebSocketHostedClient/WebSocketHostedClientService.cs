@@ -174,22 +174,25 @@ public class WebSocketHostedClientService
     
     public async Task SendWebSocketMessageAsync(object message)
     {
-        await _webSocket.ConnectAsync(new Uri(_serverUrl), CancellationToken.None);
+        using var websocket = new ClientWebSocket();
+        await websocket.ConnectAsync(new Uri(_serverUrl), CancellationToken.None);
         
-        if (_webSocket is not { State: WebSocketState.Open })
+        if (websocket is not { State: WebSocketState.Open })
         {
-            throw new Exception("WebSocket is not connected.");
+            throw new Exception($"WebSocket is not connected. WebSocket state: {websocket.State}");
         }
 
         try
         {
             var jsonMessage = JsonSerializer.Serialize(message);
             var dto = new WebSocketMessageDto(200, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), jsonMessage);
-            await SendMessageAsync(_webSocket, dto, CancellationToken.None);
+            await SendMessageAsync(websocket, dto, CancellationToken.None);
+            websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error while sending WebSocket message: {ex.Message}");
+            websocket.CloseAsync(WebSocketCloseStatus.InternalServerError,  string.Empty, CancellationToken.None);
         }
     }
 }
